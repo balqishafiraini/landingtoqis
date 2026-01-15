@@ -22,7 +22,7 @@ const QRIS_IMAGE_URL = "/qris-wedding.jpg"
 
 export default function LampungContent() {
   const [isOpen, setIsOpen] = useState(false)
-  const [guestName, setGuestName] = useState<string>("Tamu Undangan")
+  const [guestName, setGuestName] = useState<string>("Guest")
   const searchParams = useSearchParams()
 
   useEffect(() => {
@@ -46,13 +46,13 @@ export default function LampungContent() {
   const bankAccounts = [
     {
       bank_name: "Bank Central Asia (BCA)",
-      account_number: "1234567890",
+      account_number: "2920649168",
       account_holder: "Balqis Shafira Aini",
     },
     {
       bank_name: "Bank Mandiri",
-      account_number: "0987654321",
-      account_holder: "Erlan Yogaswara",
+      account_number: "1270014558603",
+      account_holder: "Balqis Shafira Aini",
     },
   ]
 
@@ -155,14 +155,12 @@ export default function LampungContent() {
           fullName: WEDDING_DATA.bride.fullName,
           parents: WEDDING_DATA.bride.parents,
           image: "/elegant-bride-portrait-indonesian-woman-hijab.jpg",
-          instagram: WEDDING_DATA.bride.instagram,
         }}
         groom={{
           name: WEDDING_DATA.groom.name,
           fullName: WEDDING_DATA.groom.fullName,
           parents: WEDDING_DATA.groom.parents,
           image: "/elegant-groom-portrait-indonesian-man-formal.jpg",
-          instagram: WEDDING_DATA.groom.instagram,
         }}
       />
 
@@ -179,7 +177,7 @@ export default function LampungContent() {
           <div className="grid md:grid-cols-2 gap-6">
             <EventCard
               title="Akad Nikah"
-              date="Sabtu, 15 Februari 2026"
+              date="Sabtu, 23 Mei 2026"
               time="08:00 - 10:00 WIB"
               venue={WEDDING_DATA.events.lampung.akad.venue}
               address={WEDDING_DATA.events.lampung.akad.address}
@@ -188,8 +186,8 @@ export default function LampungContent() {
             />
             <EventCard
               title="Walimatul Ursy"
-              date="Sabtu, 15 Februari 2026"
-              time="11:00 - 14:00 WIB"
+              date="Sabtu, 23 Mei 2026"
+              time="10:00 - 14:00 WIB"
               venue={WEDDING_DATA.events.lampung.walimah.venue}
               address={WEDDING_DATA.events.lampung.walimah.address}
               mapUrl={WEDDING_DATA.events.lampung.walimah.mapUrl}

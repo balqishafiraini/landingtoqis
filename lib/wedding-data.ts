@@ -2,41 +2,39 @@ export const WEDDING_DATA = {
   bride: {
     name: "Balqis",
     fullName: "Balqis Shafira Aini",
-    parents: "Putri kedua dari Bapak H. Ahmad Ridwan & Ibu Hj. Siti Nurhaliza",
-    instagram: "balqis.shafira",
+    parents: "Putri keempat dari Bapak Lili Zainal & Ibu Ida Ul Hasanah",
   },
   groom: {
     name: "Erlan",
     fullName: "Erlan Yogaswara",
-    parents: "Putra pertama dari Bapak H. Dedi Supriadi & Ibu Hj. Ratna Dewi",
-    instagram: "erlan.yoga",
+    parents: "Putra pertama dari (Alm) Arief Mulyana & Ibu Samiyah Suhana",
   },
   events: {
     lampung: {
       akad: {
-        dateTime: "2026-02-15T08:00:00",
-        venue: "Masjid Agung Al-Furqon",
-        address: "Jl. Diponegoro No. 1, Bandar Lampung, Lampung",
-        mapUrl: "https://maps.google.com/?q=-5.4297,105.2610",
+        dateTime: "2026-05-23T08:00:00",
+        venue: "Rumah Kediaman Bapak Lili Zainal",
+        address: "Jl. Romowijoyo no. 56, Sawah Lama, Tanjung Karang Timur, Bandar Lampung",
+        mapUrl: "https://maps.app.goo.gl/Hp6SbNi72Lm6wAXPA",
       },
       walimah: {
-        dateTime: "2026-02-15T11:00:00",
-        venue: "Gedung Serbaguna Lampung",
-        address: "Jl. Raden Intan No. 123, Bandar Lampung, Lampung",
-        mapUrl: "https://maps.google.com/?q=-5.4297,105.2610",
+        dateTime: "2026-05-23T10:00:00",
+        venue: "Rumah Kediaman Bapak Lili Zainal",
+        address: "Jl. Romowijoyo no. 56, Sawah Lama, Tanjung Karang Timur, Bandar Lampung",
+        mapUrl: "https://maps.app.goo.gl/Hp6SbNi72Lm6wAXPA",
       },
     },
     jakarta: {
       reception: {
-        dateTime: "2026-02-22T18:00:00",
-        venue: "The Ritz-Carlton Jakarta",
-        address: "Jl. DR. Ide Anak Agung Gde Agung Kav E.1.1 No 1, Jakarta Selatan",
-        mapUrl: "https://maps.google.com/?q=-6.2088,106.8456",
+        dateTime: "2026-06-01T16:00:00",
+        venue: "Villa Srimanganti",
+        address: "Jl. Raya Pkp No.34 2, RT.2/RW.8, Klp. Dua Wetan, Kec. Ciracas, Kota Jakarta Timur, DKI Jakarta",
+        mapUrl: "https://maps.app.goo.gl/nWQiJHJrwhafYwf89",
       },
     },
   },
-  hashtag: "#BalqisErlanForever",
-  musicUrl: "/wedding-music.mp3",
+  hashtag: "#LANdingtoQIS",
+  musicUrl: "/Lover.mp3",
 }
 
 // Legacy exports for backwards compatibility

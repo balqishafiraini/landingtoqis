@@ -172,7 +172,7 @@ export default function HomePage() {
                 </div>
                 <CardContent className="p-6">
                   <h3 className="font-serif text-2xl text-foreground mb-2">Wedding Reception</h3>
-                  <p className="text-muted-foreground mb-4">Saturday, February 22, 2026</p>
+                  <p className="text-muted-foreground mb-4">Monday, 1 June 2026</p>
                   <p className="text-sm text-muted-foreground mb-4">
                     A modern celebration with friends and family in Jakarta
                   </p>

@@ -8,7 +8,7 @@ interface InvitationEnvelopeProps {
   onOpen: () => void
 }
 
-export function InvitationEnvelope({ guestName = "Tamu Undangan", onOpen }: InvitationEnvelopeProps) {
+export function InvitationEnvelope({ guestName = "Guest", onOpen }: InvitationEnvelopeProps) {
   const [isOpening, setIsOpening] = useState(false)
 
   const handleOpen = () => {
@@ -48,7 +48,7 @@ export function InvitationEnvelope({ guestName = "Tamu Undangan", onOpen }: Invi
               transition={{ delay: 0.5 }}
               className="text-muted-foreground text-lg mb-2"
             >
-              Kepada Yth.
+              Dear, 
             </motion.p>
 
             <motion.h2
@@ -66,7 +66,7 @@ export function InvitationEnvelope({ guestName = "Tamu Undangan", onOpen }: Invi
               transition={{ delay: 0.9 }}
               className="text-muted-foreground mb-8"
             >
-              Anda diundang ke pernikahan
+              You are invited to the wedding of
             </motion.p>
 
             <motion.div
@@ -90,7 +90,7 @@ export function InvitationEnvelope({ guestName = "Tamu Undangan", onOpen }: Invi
               onClick={handleOpen}
               className="px-8 py-3 bg-primary text-primary-foreground rounded-full font-medium shadow-lg hover:shadow-xl transition-all duration-300"
             >
-              Buka Undangan
+              Open Invitation
             </motion.button>
 
             {/* Decorative bottom */}

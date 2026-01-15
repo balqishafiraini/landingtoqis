@@ -7,7 +7,6 @@ interface Person {
   fullName: string
   parents: string
   image: string
-  instagram?: string
 }
 
 interface CoupleSectionProps {
@@ -40,16 +39,6 @@ export function CoupleSection({ bride, groom }: CoupleSectionProps) {
               <h3 className="font-serif text-2xl md:text-3xl text-foreground mb-2">{bride.name}</h3>
               <p className="text-muted-foreground text-lg mb-2">{bride.fullName}</p>
               <p className="text-sm text-muted-foreground">{bride.parents}</p>
-              {bride.instagram && (
-                <a
-                  href={`https://instagram.com/${bride.instagram}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="mt-3 text-primary hover:underline text-sm"
-                >
-                  @{bride.instagram}
-                </a>
-              )}
             </div>
           </ScrollReveal>
 
@@ -70,16 +59,7 @@ export function CoupleSection({ bride, groom }: CoupleSectionProps) {
               <h3 className="font-serif text-2xl md:text-3xl text-foreground mb-2">{groom.name}</h3>
               <p className="text-muted-foreground text-lg mb-2">{groom.fullName}</p>
               <p className="text-sm text-muted-foreground">{groom.parents}</p>
-              {groom.instagram && (
-                <a
-                  href={`https://instagram.com/${groom.instagram}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="mt-3 text-primary hover:underline text-sm"
-                >
-                  @{groom.instagram}
-                </a>
-              )}
+      
             </div>
           </ScrollReveal>
         </div>

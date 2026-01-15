@@ -46,13 +46,13 @@ export default function JakartaContent() {
   const bankAccounts = [
     {
       bank_name: "Bank Central Asia (BCA)",
-      account_number: "1234567890",
+      account_number: "2920649168",
       account_holder: "Balqis Shafira Aini",
     },
     {
       bank_name: "Bank Mandiri",
-      account_number: "0987654321",
-      account_holder: "Erlan Yogaswara",
+      account_number: " 1270014558603",
+      account_holder: "Balqis Shafira Aini",
     },
   ]
 
@@ -155,7 +155,7 @@ export default function JakartaContent() {
           >
             <span className="flex items-center gap-2">
               <Calendar className="w-5 h-5 text-primary" />
-              Saturday, February 22, 2026
+              Monday, 1 June 2026
             </span>
             <span className="hidden md:block">|</span>
             <span className="flex items-center gap-2">
@@ -215,9 +215,9 @@ export default function JakartaContent() {
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent" />
                     <div className="absolute bottom-0 left-0 right-0 p-6">
-                      <p className="text-primary text-sm font-medium mb-1">The Bride</p>
-                      <h3 className="font-serif text-2xl text-foreground">{WEDDING_DATA.bride.name}</h3>
-                      <p className="text-muted-foreground text-sm mt-1">{WEDDING_DATA.bride.fullName}</p>
+                      <p className="text-primary text-sm font-medium mb-1">{WEDDING_DATA.bride.name}</p>
+                      <h3 className="font-serif text-2xl text-foreground">{WEDDING_DATA.bride.fullName}</h3>
+                      <p className="text-muted-foreground text-sm mt-1">{WEDDING_DATA.bride.parents}</p>
                     </div>
                   </div>
                 </CardContent>
@@ -251,9 +251,10 @@ export default function JakartaContent() {
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent" />
                     <div className="absolute bottom-0 left-0 right-0 p-6">
-                      <p className="text-primary text-sm font-medium mb-1">The Groom</p>
-                      <h3 className="font-serif text-2xl text-foreground">{WEDDING_DATA.groom.name}</h3>
-                      <p className="text-muted-foreground text-sm mt-1">{WEDDING_DATA.groom.fullName}</p>
+                      <p className="text-primary text-sm font-medium mb-1">{WEDDING_DATA.groom.name}</p>
+                      <h3 className="font-serif text-2xl text-foreground">{WEDDING_DATA.groom.fullName}</h3>
+                      <p className="text-muted-foreground text-sm mt-1">{WEDDING_DATA.groom.parents}</p>
+
                     </div>
                   </div>
                 </CardContent>
@@ -298,7 +299,7 @@ export default function JakartaContent() {
                           <Calendar className="w-5 h-5 text-primary" />
                         </div>
                         <div>
-                          <p className="font-medium text-foreground">Saturday, February 22, 2026</p>
+                          <p className="font-medium text-foreground">Monday, 1 June 2026</p>
                         </div>
                       </div>
 
@@ -307,7 +308,7 @@ export default function JakartaContent() {
                           <Clock className="w-5 h-5 text-primary" />
                         </div>
                         <div>
-                          <p className="font-medium text-foreground">6:00 PM - 10:00 PM</p>
+                          <p className="font-medium text-foreground">4:00 PM - 7:30 PM</p>
                         </div>
                       </div>
 

@@ -2,9 +2,8 @@
 
 -- Insert bank accounts
 INSERT INTO bank_accounts (bank_name, account_number, account_holder, is_active) VALUES
-  ('BCA', '1234567890', 'Balqis Shafira Aini', true),
-  ('Mandiri', '0987654321', 'Erlan Yogaswara', true),
-  ('BNI', '1122334455', 'Balqis Shafira Aini', true)
+  ('BCA', '2920649168', 'Balqis Shafira Aini', true),
+  ('Mandiri', '1270014558603', 'Balqis Shafira Aini', true),
 ON CONFLICT DO NOTHING;
 
 -- Insert sample wishlist items

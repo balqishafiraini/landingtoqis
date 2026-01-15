@@ -8,36 +8,42 @@ interface MusicPlayerProps {
   audioSrc?: string
 }
 
-export function MusicPlayer({ audioSrc = "/wedding-music.mp3" }: MusicPlayerProps) {
+export function MusicPlayer({ audioSrc = "/Lover.mp3" }: MusicPlayerProps) {
   const [isPlaying, setIsPlaying] = useState(false)
   const [hasInteracted, setHasInteracted] = useState(false)
   const audioRef = useRef<HTMLAudioElement | null>(null)
 
   useEffect(() => {
+    // 1. Inisialisasi Audio
     audioRef.current = new Audio(audioSrc)
     audioRef.current.loop = true
     audioRef.current.volume = 0.3
 
+    // 2. AUTO PLAY (Perbaikan di sini)
+    // Gunakan 'const' (bukan cconst).
+    // Karena komponen ini baru muncul setelah user klik tombol "Buka Undangan",
+    // browser akan menganggap ini interaksi sah dan membolehkan autoplay.
     const playPromise = audioRef.current.play()
 
-  if (playPromise !== undefined) {
-    playPromise
-      .then(() => {
-        setIsPlaying(true) // Update status icon jadi "Playing"
-      })
-      .catch((error) => {
-        console.log("Autoplay prevented:", error)
-        setIsPlaying(false)
-      })
-  }
-
-  return () => {
-    if (audioRef.current) {
-      audioRef.current.pause()
-      audioRef.current = null
+    if (playPromise !== undefined) {
+      playPromise
+        .then(() => {
+          setIsPlaying(true) // Jika berhasil, ubah ikon jadi "Pause"
+        })
+        .catch((error) => {
+          console.log("Autoplay prevented:", error)
+          setIsPlaying(false) // Jika gagal, biarkan ikon "Play"
+        })
     }
-  }
-}, [audioSrc])
+
+    // Cleanup saat keluar halaman
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause()
+        audioRef.current = null
+      }
+    }
+  }, [audioSrc])
 
   const toggleMusic = () => {
     if (!audioRef.current) return
@@ -46,7 +52,7 @@ export function MusicPlayer({ audioSrc = "/wedding-music.mp3" }: MusicPlayerProp
       audioRef.current.pause()
     } else {
       audioRef.current.play().catch(() => {
-        // Autoplay was prevented
+        // Handle jika play gagal
       })
     }
     setIsPlaying(!isPlaying)

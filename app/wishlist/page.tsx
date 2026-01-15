@@ -6,14 +6,14 @@ const MOCK_BANK_ACCOUNTS = [
   {
     id: "bank-1",
     bank_name: "BCA",
-    account_number: "1234567890",
+    account_number: "2920649168",
     account_holder: "Balqis Shafira Aini",
   },
   {
     id: "bank-2",
     bank_name: "Mandiri",
-    account_number: "0987654321",
-    account_holder: "Erlan Yogaswara",
+    account_number: "1270014558603",
+    account_holder: "Balqis Shafira Aini",
   },
 ]
 
