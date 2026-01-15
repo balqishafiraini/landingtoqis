@@ -5,7 +5,7 @@ import { useSearchParams } from "next/navigation"
 import Image from "next/image"
 import Link from "next/link"
 import { motion, useScroll, useTransform } from "framer-motion"
-import { Calendar, Clock, MapPin, Navigation, Sparkles, Heart, Camera, Gift, PartyPopper, QrCode } from "lucide-react"
+import { Calendar, Clock, MapPin, Navigation, Sparkles, Heart, Camera, Gift, PartyPopper, QrCode, Film } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { InvitationEnvelope } from "@/components/wedding/invitation-envelope"
@@ -201,7 +201,7 @@ export default function JakartaContent() {
                 <CardContent className="p-0">
                   <div className="aspect-[3/4] relative">
                     <Image
-                      src="balqis.jpg"
+                      src="/balqis.jpg"
                       alt={WEDDING_DATA.bride.name}
                       fill
                       className="object-cover"
@@ -210,7 +210,7 @@ export default function JakartaContent() {
                     <div className="absolute bottom-0 left-0 right-0 p-6">
                       <p className="text-primary text-sm font-medium mb-1">{WEDDING_DATA.bride.name}</p>
                       <h3 className="font-serif text-2xl text-foreground">{WEDDING_DATA.bride.fullName}</h3>
-                      <p className="text-muted-foreground text-sm mt-1">Daughter of Bapak Lili Zainal & Ibu Ida Ul Hasanah</p>
+                      <p className="text-muted-foreground text-sm mt-1">{WEDDING_DATA.bride.parents}</p>
                     </div>
                   </div>
                 </CardContent>
@@ -246,7 +246,7 @@ export default function JakartaContent() {
                     <div className="absolute bottom-0 left-0 right-0 p-6">
                       <p className="text-primary text-sm font-medium mb-1">{WEDDING_DATA.groom.name}</p>
                       <h3 className="font-serif text-2xl text-foreground">{WEDDING_DATA.groom.fullName}</h3>
-                      <p className="text-muted-foreground text-sm mt-1">Son of (Alm) Arief Mulyana & Ibu Samiyah Suhana</p>
+                      <p className="text-muted-foreground text-sm mt-1">{WEDDING_DATA.groom.parents}</p>
 
                     </div>
                   </div>
@@ -355,44 +355,88 @@ export default function JakartaContent() {
         </div>
       </section>
 
-      {/* Gallery - Masonry Style */}
+      {/* Our Moments - Video Section */}
       <section className="py-20 px-6 bg-card">
+        <div className="max-w-4xl mx-auto">
+          <ScrollReveal>
+            <div className="text-center mb-16">
+              <Film className="w-10 h-10 text-primary mx-auto mb-4" />
+              <h2 className="font-serif text-4xl md:text-5xl text-foreground mb-4">Our Moments</h2>
+              <p className="text-muted-foreground text-lg">The beginning of our forever</p>
+            </div>
+          </ScrollReveal>
+
+          <ScrollReveal delay={100}>
+            <div className="rounded-xl overflow-hidden shadow-2xl bg-black border border-border">
+              <video 
+                controls 
+                className="w-full h-auto aspect-video" 
+                src="/proposal.mp4"
+                poster="/thumbnail.jpg"
+              >
+                Your browser does not support the video tag.
+              </video>
+            </div>
+          </ScrollReveal>
+        </div>
+      </section>
+
+      {/* Gallery Section - 4 Photos */}
+      <section className="py-20 px-6 bg-background">
         <div className="max-w-6xl mx-auto">
           <ScrollReveal>
             <div className="text-center mb-16">
               <Camera className="w-10 h-10 text-primary mx-auto mb-4" />
-              <h2 className="font-serif text-4xl md:text-5xl text-foreground mb-4">Our Moments</h2>
+              <h2 className="font-serif text-4xl md:text-5xl text-foreground mb-4">Gallery</h2>
               <p className="text-muted-foreground text-lg">Snapshots of our journey together</p>
             </div>
           </ScrollReveal>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {[
-              { span: "col-span-2 row-span-2", aspect: "aspect-square" },
-              { span: "", aspect: "aspect-square" },
-              { span: "", aspect: "aspect-square" },
-              { span: "", aspect: "aspect-[3/4]" },
-              { span: "", aspect: "aspect-[3/4]" },
-              { span: "col-span-2", aspect: "aspect-video" },
-            ].map((item, i) => (
-              <ScrollReveal key={i} delay={i * 100}>
-                <div className={`${item.span} ${item.aspect} relative rounded-xl overflow-hidden group cursor-pointer`}>
-                  <Image
-                    src={`/balqis.jpg?height=600&width=600 ${i + 1}`}
-                    alt={`Gallery ${i + 1}`}
-                    fill
-                    className="object-cover transition-transform duration-700 group-hover:scale-110"
-                  />
-                  <div className="absolute inset-0 bg-foreground/0 group-hover:bg-foreground/20 transition-colors duration-300" />
-                </div>
-              </ScrollReveal>
-            ))}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+
+            {/* Photo 1 - Portrait */}
+            <ScrollReveal delay={200}>
+              <div className="md:col-span-1 aspect-[3/4] relative rounded-xl overflow-hidden group">
+                <Image
+                  src="/gallery1.jpg"
+                  alt="Gallery 2"
+                  fill
+                  className="object-cover transition-transform duration-700 group-hover:scale-105"
+                />
+                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300" />
+              </div>
+            </ScrollReveal>
+
+            {/* Photo 2 - Portrait */}
+            <ScrollReveal delay={300}>
+              <div className="md:col-span-1 aspect-[3/4] relative rounded-xl overflow-hidden group">
+                <Image
+                  src="/gallery2.jpg"
+                  alt="Gallery 3"
+                  fill
+                  className="object-cover transition-transform duration-700 group-hover:scale-105"
+                />
+                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300" />
+              </div>
+            </ScrollReveal>
+            {/* Photo 3 - Portrait */}
+            <ScrollReveal delay={300}>
+              <div className="md:col-span-1 aspect-[3/4] relative rounded-xl overflow-hidden group">
+                <Image
+                  src="/gallery3.jpg"
+                  alt="Gallery 3"
+                  fill
+                  className="object-cover transition-transform duration-700 group-hover:scale-105"
+                />
+                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300" />
+              </div>
+            </ScrollReveal>
           </div>
         </div>
       </section>
 
       {/* RSVP Section */}
-      <section className="py-20 px-6 bg-background">
+      <section className="py-20 px-6 bg-card">
         <div className="max-w-4xl mx-auto">
           <ScrollReveal>
             <div className="text-center mb-12">
@@ -455,10 +499,20 @@ export default function JakartaContent() {
               </ScrollReveal>
             ))}
           </div>
-
           <ScrollReveal delay={300}>
-            <div className="text-center">
-              <Button asChild size="lg">
+            <div className="text-center mt-12 mb-8">
+              <p className="font-serif font-bold text-xl md:text-2xl text-primary mb-8 italic max-w-3xl mx-auto leading-relaxed drop-shadow-sm">
+                Your love and presence are the greatest gifts.
+                <br />
+                But if you&apos;d like to add a little magic to our new home,
+                <br />
+                we&apos;ve created a wishlist of things we&apos;d truly cherish.
+</p>
+
+              <Button 
+                asChild 
+                className="h-auto py-6 px-12 text-xl font-medium rounded-full shadow-[0_0_20px_rgba(var(--primary),0.3)] hover:shadow-[0_0_30px_rgba(var(--primary),0.5)] hover:scale-105 transition-all duration-300 bg-gradient-to-r from-primary to-primary/80 border-2 border-primary/20"
+              >
                 <Link href="/wishlist">View Gift Wishlist</Link>
               </Button>
             </div>
@@ -503,9 +557,9 @@ export default function JakartaContent() {
           <div className="flex items-center justify-center gap-2 text-muted-foreground text-sm">
             <span>Made with</span>
             <Heart className="w-4 h-4 text-accent fill-current" />
-            <span>by Bride & Groom</span>
+            <span>for our special day</span>
           </div>
-          <p className="text-xs text-muted-foreground mt-4">© 2026 Balqis & Erlan</p>
+          <p className="text-xs text-muted-foreground mt-4">© 2026 #BalqisErlanForever</p>
         </motion.div>
       </footer>
     </main>

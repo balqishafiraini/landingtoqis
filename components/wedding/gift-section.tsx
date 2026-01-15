@@ -112,15 +112,23 @@ export function GiftSection({ bankAccounts, qrisImageUrl }: GiftSectionProps) {
         </div>
 
         <ScrollReveal delay={300}>
-          <div className="text-center">
-            <Button asChild variant="outline" size="lg">
-              <Link href="/wishlist">
-                <ExternalLink className="w-4 h-4 mr-2" />
-                Lihat Wishlist Hadiah
-              </Link>
-            </Button>
-          </div>
-        </ScrollReveal>
+            <div className="text-center mt-12 mb-8">
+              <p className="font-serif font-bold text-lg md:text-xl text-primary mb-8 italic max-w-3xl mx-auto leading-relaxed drop-shadow-sm">
+                Kehadiran Anda adalah hadiah yang paling berarti bagi kami.
+                <br />
+                Namun, jika berkenan menambah sedikit kehangatan untuk rumah baru kami,
+                <br />
+                Kami telah menyiapkan wislist yang akan kami terima dengan penuh syukur.
+                </p>
+
+              <Button 
+                asChild 
+                className="h-auto py-6 px-12 text-xl font-medium rounded-full shadow-[0_0_20px_rgba(var(--primary),0.3)] hover:shadow-[0_0_30px_rgba(var(--primary),0.5)] hover:scale-105 transition-all duration-300 bg-gradient-to-r from-primary to-primary/80 border-2 border-primary/20"
+              >
+                <Link href="/wishlist">Lihat Daftar Wishlist</Link>
+              </Button>
+            </div>
+          </ScrollReveal>
       </div>
 
       {showQris && qrisImageUrl && (

@@ -154,13 +154,13 @@ export default function LampungContent() {
           name: WEDDING_DATA.bride.name,
           fullName: WEDDING_DATA.bride.fullName,
           parents: WEDDING_DATA.bride.parents,
-          image: "/elegant-bride-portrait-indonesian-woman-hijab.jpg",
+          image: "/bridemuslim.jpg",
         }}
         groom={{
           name: WEDDING_DATA.groom.name,
           fullName: WEDDING_DATA.groom.fullName,
           parents: WEDDING_DATA.groom.parents,
-          image: "/elegant-groom-portrait-indonesian-man-formal.jpg",
+          image: "/groommuslim.jpg",
         }}
       />
 
@@ -193,34 +193,6 @@ export default function LampungContent() {
               mapUrl={WEDDING_DATA.events.lampung.walimah.mapUrl}
               delay={400}
             />
-          </div>
-        </div>
-      </section>
-
-      {/* Gallery Section */}
-      <section className="py-16 md:py-24 px-6 bg-card">
-        <div className="max-w-5xl mx-auto">
-          <ScrollReveal>
-            <div className="text-center mb-12">
-              <h2 className="font-serif text-3xl md:text-4xl text-foreground mb-4">Galeri Foto</h2>
-              <p className="text-muted-foreground">Momen-momen indah kami bersama</p>
-            </div>
-          </ScrollReveal>
-
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-            {[1, 2, 3, 4, 5, 6].map((i) => (
-              <ScrollReveal key={i} delay={i * 100}>
-                <div className="aspect-square relative rounded-lg overflow-hidden group">
-                  <Image
-                    src={`/romantic-couple-prewedding-photo-.jpg?height=400&width=400&query=romantic couple prewedding photo ${i} Indonesian traditional`}
-                    alt={`Gallery ${i}`}
-                    fill
-                    className="object-cover transition-transform duration-500 group-hover:scale-110"
-                  />
-                  <div className="absolute inset-0 bg-foreground/0 group-hover:bg-foreground/10 transition-colors duration-300" />
-                </div>
-              </ScrollReveal>
-            ))}
           </div>
         </div>
       </section>
