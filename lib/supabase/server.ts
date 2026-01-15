@@ -4,7 +4,12 @@ import { cookies } from "next/headers"
 export async function createClient() {
   const cookieStore = await cookies()
 
-  return createServerClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, {
+  // --- MASUKKAN KUNCI ASLI DI SINI (JANGAN KOSONG) ---
+  const supabaseUrl = "https://furrsgjfbhzqbtwuwnik.supabase.co"
+  const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ1cnJzZ2pmYmh6cWJ0d3V3bmlrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg0NzMzMzcsImV4cCI6MjA4NDA0OTMzN30.RbjqHFBkoYSmpkYXZPplflhxdDBinmfsznnWFl9TR04"
+  // ----------------------------------------------------
+
+  return createServerClient(supabaseUrl, supabaseKey, {
     cookies: {
       getAll() {
         return cookieStore.getAll()

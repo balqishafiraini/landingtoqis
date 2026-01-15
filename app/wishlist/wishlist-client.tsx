@@ -4,7 +4,7 @@ import { useState } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { motion } from "framer-motion"
-import { Gift, Check, ExternalLink, ArrowLeft, Copy, Heart, Search, Filter } from "lucide-react"
+import { Gift, Check, ExternalLink, ArrowLeft, Copy, Search } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -21,17 +21,16 @@ import {
 import { ScrollReveal } from "@/components/wedding/scroll-reveal"
 import { FloralDivider } from "@/components/wedding/floral-divider"
 
+// Interface disederhanakan
 interface WishlistItem {
   id: string
   name: string
   description: string | null
   price: number | null
   image_url: string | null
-  product_url: string | null
-  category: string
+  shop_link: string | null
   is_claimed: boolean
   claimed_by: string | null
-  priority: number
 }
 
 interface BankAccount {
@@ -47,46 +46,37 @@ interface WishlistClientProps {
 }
 
 export function WishlistClient({ initialItems, bankAccounts }: WishlistClientProps) {
-  const [items, setItems] = useState(initialItems)
+  const [items, setItems] = useState<WishlistItem[]>(initialItems)
   const [searchQuery, setSearchQuery] = useState("")
-  const [categoryFilter, setCategoryFilter] = useState("all")
   const [statusFilter, setStatusFilter] = useState("all")
   const [claimingId, setClaimingId] = useState<string | null>(null)
   const [claimerName, setClaimerName] = useState("")
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null)
 
-  const categories = Array.from(new Set(initialItems.map((item) => item.category)))
-
   const filteredItems = items.filter((item) => {
     const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase())
-    const matchesCategory = categoryFilter === "all" || item.category === categoryFilter
     const matchesStatus =
       statusFilter === "all" ||
       (statusFilter === "available" && !item.is_claimed) ||
       (statusFilter === "claimed" && item.is_claimed)
-    return matchesSearch && matchesCategory && matchesStatus
+    return matchesSearch && matchesStatus
   })
 
-  const handleClaim = async (itemId: string) => {
+  // --- LOGIKA SIMULASI KLAIM (TANPA DATABASE) ---
+  const handleClaim = (itemId: string) => {
     if (!claimerName.trim()) return
 
-    try {
-      const response = await fetch("/api/wishlist/claim", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ itemId, claimedBy: claimerName }),
-      })
-
-      if (response.ok) {
-        setItems(
-          items.map((item) => (item.id === itemId ? { ...item, is_claimed: true, claimed_by: claimerName } : item)),
+    // Simulasi loading sebentar
+    setTimeout(() => {
+      setItems(
+        items.map((item) => 
+          item.id === itemId ? { ...item, is_claimed: true, claimed_by: claimerName } : item
         )
-        setClaimingId(null)
-        setClaimerName("")
-      }
-    } catch (error) {
-      console.error("Error claiming item:", error)
-    }
+      )
+      setClaimingId(null)
+      setClaimerName("")
+      alert("Berhasil diklaim! (Mode Simulasi: Data akan reset jika di-refresh)")
+    }, 500)
   }
 
   const formatPrice = (price: number | null) => {
@@ -105,7 +95,7 @@ export function WishlistClient({ initialItems, bankAccounts }: WishlistClientPro
   }
 
   return (
-    <main className="min-h-screen bg-background">
+    <main className="min-h-screen bg-background pb-20">
       {/* Header */}
       <section className="py-16 px-6 bg-card">
         <div className="max-w-4xl mx-auto text-center">
@@ -121,8 +111,7 @@ export function WishlistClient({ initialItems, bankAccounts }: WishlistClientPro
             <Gift className="w-12 h-12 text-primary mx-auto mb-4" />
             <h1 className="font-serif text-4xl md:text-5xl text-foreground mb-4">Wedding Wishlist</h1>
             <p className="text-muted-foreground max-w-2xl mx-auto">
-              Kehadiran dan doa Anda adalah hadiah terindah bagi kami. Namun jika Anda ingin memberikan hadiah, berikut
-              adalah beberapa hal yang kami impikan untuk memulai kehidupan baru kami bersama.
+              Kehadiran Anda adalah hadiah terindah. Namun jika ingin memberi tanda kasih, berikut adalah yang kami butuhkan.
             </p>
           </motion.div>
 
@@ -131,7 +120,7 @@ export function WishlistClient({ initialItems, bankAccounts }: WishlistClientPro
       </section>
 
       {/* Bank Accounts */}
-      <section className="py-12 px-6 bg-background">
+      <section className="py-8 px-6 bg-background">
         <div className="max-w-4xl mx-auto">
           <ScrollReveal>
             <h2 className="font-serif text-2xl text-foreground text-center mb-6">Transfer Langsung</h2>
@@ -160,7 +149,7 @@ export function WishlistClient({ initialItems, bankAccounts }: WishlistClientPro
       </section>
 
       {/* Filters */}
-      <section className="py-8 px-6 bg-card sticky top-0 z-40 border-b border-border">
+      <section className="py-6 px-6 bg-card sticky top-0 z-40 border-b border-border shadow-sm">
         <div className="max-w-6xl mx-auto">
           <div className="flex flex-col md:flex-row gap-4">
             <div className="relative flex-1">
@@ -172,27 +161,13 @@ export function WishlistClient({ initialItems, bankAccounts }: WishlistClientPro
                 className="pl-10"
               />
             </div>
-            <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-              <SelectTrigger className="w-full md:w-[180px]">
-                <Filter className="w-4 h-4 mr-2" />
-                <SelectValue placeholder="Kategori" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Semua Kategori</SelectItem>
-                {categories.map((category) => (
-                  <SelectItem key={category} value={category}>
-                    {category}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-full md:w-[180px]">
+              <SelectTrigger className="w-full md:w-[200px]">
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Semua Status</SelectItem>
-                <SelectItem value="available">Tersedia</SelectItem>
+                <SelectItem value="available">Belum Diklaim</SelectItem>
                 <SelectItem value="claimed">Sudah Diklaim</SelectItem>
               </SelectContent>
             </Select>
@@ -213,57 +188,58 @@ export function WishlistClient({ initialItems, bankAccounts }: WishlistClientPro
               {filteredItems.map((item, index) => (
                 <ScrollReveal key={item.id} delay={index * 50}>
                   <Card
-                    className={`bg-card border-border overflow-hidden h-full flex flex-col ${item.is_claimed ? "opacity-75" : ""}`}
+                    className={`bg-card border-border overflow-hidden h-full flex flex-col transition-all ${
+                      item.is_claimed ? "opacity-75 grayscale-[0.5]" : "hover:shadow-md"
+                    }`}
                   >
                     <div className="aspect-square relative bg-muted">
                       {item.image_url ? (
                         <Image
-                          src={item.image_url || "/placeholder.svg"}
+                          src={item.image_url}
                           alt={item.name}
                           fill
                           className="object-cover"
                         />
                       ) : (
-                        <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="absolute inset-0 flex items-center justify-center bg-secondary/30">
                           <Gift className="w-16 h-16 text-muted-foreground/30" />
                         </div>
                       )}
+                      
                       {item.is_claimed && (
-                        <div className="absolute inset-0 bg-background/80 flex items-center justify-center">
-                          <Badge variant="secondary" className="text-lg py-2 px-4">
+                        <div className="absolute inset-0 bg-background/80 flex flex-col items-center justify-center p-4 text-center">
+                          <Badge variant="secondary" className="text-lg py-2 px-4 mb-2 bg-primary/10 text-primary">
                             <Check className="w-4 h-4 mr-2" />
-                            Sudah Diklaim
+                            Terima Kasih
                           </Badge>
+                          <p className="text-sm font-medium">Diklaim oleh {item.claimed_by}</p>
                         </div>
                       )}
-                      {item.priority > 5 && !item.is_claimed && (
-                        <Badge className="absolute top-3 right-3 bg-accent text-accent-foreground">
-                          <Heart className="w-3 h-3 mr-1 fill-current" />
-                          Prioritas
-                        </Badge>
-                      )}
                     </div>
+
                     <CardContent className="p-5 flex flex-col flex-1">
-                      <Badge variant="outline" className="w-fit mb-2 text-xs">
-                        {item.category}
-                      </Badge>
-                      <h3 className="font-medium text-foreground mb-2">{item.name}</h3>
+                      <h3 className="font-medium text-lg text-foreground mb-2 line-clamp-1" title={item.name}>
+                        {item.name}
+                      </h3>
+                      
                       {item.description && (
                         <p className="text-sm text-muted-foreground mb-3 line-clamp-2">{item.description}</p>
                       )}
+                      
                       {item.price && (
                         <p className="text-lg font-semibold text-primary mb-4">{formatPrice(item.price)}</p>
                       )}
 
-                      <div className="mt-auto flex gap-2">
-                        {item.product_url && (
+                      <div className="mt-auto flex gap-2 pt-2">
+                        {item.shop_link && (
                           <Button asChild variant="outline" size="sm" className="flex-1 bg-transparent">
-                            <a href={item.product_url} target="_blank" rel="noopener noreferrer">
+                            <a href={item.shop_link} target="_blank" rel="noopener noreferrer">
                               <ExternalLink className="w-4 h-4 mr-1" />
                               Lihat
                             </a>
                           </Button>
                         )}
+                        
                         {!item.is_claimed && (
                           <Dialog
                             open={claimingId === item.id}
@@ -275,29 +251,25 @@ export function WishlistClient({ initialItems, bankAccounts }: WishlistClientPro
                             <DialogTrigger asChild>
                               <Button size="sm" className="flex-1">
                                 <Gift className="w-4 h-4 mr-1" />
-                                Klaim
+                                Gift This
                               </Button>
                             </DialogTrigger>
-                            <DialogContent>
+                            <DialogContent className="sm:max-w-md">
                               <DialogHeader>
-                                <DialogTitle>Klaim Hadiah</DialogTitle>
+                                <DialogTitle>Konfirmasi Klaim</DialogTitle>
                                 <DialogDescription>
-                                  Anda akan mengklaim &quot;{item.name}&quot; sebagai hadiah untuk Balqis & Erlan
+                                  Anda akan memberikan &quot;{item.name}&quot;. Masukkan nama Anda agar mempelai mengetahuinya.
                                 </DialogDescription>
                               </DialogHeader>
-                              <div className="space-y-4 pt-4">
-                                <div>
-                                  <label
-                                    htmlFor="claimerName"
-                                    className="text-sm font-medium text-foreground mb-2 block"
-                                  >
-                                    Nama Anda
-                                  </label>
+                              <div className="space-y-4 pt-2">
+                                <div className="space-y-2">
+                                  <label htmlFor="name" className="text-sm font-medium">Nama Anda</label>
                                   <Input
-                                    id="claimerName"
-                                    placeholder="Masukkan nama Anda"
+                                    id="name"
+                                    placeholder="Contoh: Budi & Keluarga"
                                     value={claimerName}
                                     onChange={(e) => setClaimerName(e.target.value)}
+                                    autoFocus
                                   />
                                 </div>
                                 <Button
@@ -305,7 +277,7 @@ export function WishlistClient({ initialItems, bankAccounts }: WishlistClientPro
                                   className="w-full"
                                   disabled={!claimerName.trim()}
                                 >
-                                  Konfirmasi Klaim
+                                  Saya akan memberikan ini
                                 </Button>
                               </div>
                             </DialogContent>
@@ -322,11 +294,8 @@ export function WishlistClient({ initialItems, bankAccounts }: WishlistClientPro
       </section>
 
       {/* Footer */}
-      <footer className="py-12 px-6 bg-card text-center">
-        <p className="text-muted-foreground">
-          Terima kasih atas perhatian dan kebaikan Anda. Setiap hadiah sangat berarti bagi kami.
-        </p>
-        <p className="font-serif text-xl text-foreground mt-4">
+      <footer className="py-12 px-6 text-center border-t border-border mt-8">
+        <p className="font-serif text-xl text-foreground">
           Balqis <span className="text-primary">&</span> Erlan
         </p>
       </footer>

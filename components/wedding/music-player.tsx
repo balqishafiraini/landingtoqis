@@ -18,13 +18,26 @@ export function MusicPlayer({ audioSrc = "/wedding-music.mp3" }: MusicPlayerProp
     audioRef.current.loop = true
     audioRef.current.volume = 0.3
 
-    return () => {
-      if (audioRef.current) {
-        audioRef.current.pause()
-        audioRef.current = null
-      }
+    const playPromise = audioRef.current.play()
+
+  if (playPromise !== undefined) {
+    playPromise
+      .then(() => {
+        setIsPlaying(true) // Update status icon jadi "Playing"
+      })
+      .catch((error) => {
+        console.log("Autoplay prevented:", error)
+        setIsPlaying(false)
+      })
+  }
+
+  return () => {
+    if (audioRef.current) {
+      audioRef.current.pause()
+      audioRef.current = null
     }
-  }, [audioSrc])
+  }
+}, [audioSrc])
 
   const toggleMusic = () => {
     if (!audioRef.current) return
