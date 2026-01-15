@@ -73,7 +73,7 @@ export default function HomePage() {
             transition={{ duration: 0.8, delay: 0.6 }}
             className="text-muted-foreground text-lg md:text-xl mb-8"
           >
-            #BalqisErlanForever
+            #LANdingtoQIS
           </motion.p>
 
           <motion.div
@@ -124,7 +124,7 @@ export default function HomePage() {
                     className="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-105"
                     style={{
                       backgroundImage:
-                        "url(/placeholder.svg?height=400&width=600&query=Lampung Indonesia traditional wedding venue garden)",
+                        "url(/akad.jpg?height=400&width=600)",
                     }}
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-background to-transparent" />
@@ -141,12 +141,6 @@ export default function HomePage() {
                   <p className="text-sm text-muted-foreground mb-4">
                     Acara sakral dan resepsi di kampung halaman mempelai wanita
                   </p>
-                  <Button asChild className="w-full">
-                    <Link href="/lampung">
-                      Lihat Detail
-                      <ArrowRight className="w-4 h-4 ml-2" />
-                    </Link>
-                  </Button>
                 </CardContent>
               </Card>
             </ScrollReveal>
@@ -159,7 +153,7 @@ export default function HomePage() {
                     className="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-105"
                     style={{
                       backgroundImage:
-                        "url(/placeholder.svg?height=400&width=600&query=Jakarta modern wedding reception venue elegant ballroom)",
+                        "url(/resepsi.jpg?height=400&width=600",
                     }}
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-background to-transparent" />
@@ -176,12 +170,6 @@ export default function HomePage() {
                   <p className="text-sm text-muted-foreground mb-4">
                     A modern celebration with friends and family in Jakarta
                   </p>
-                  <Button asChild className="w-full">
-                    <Link href="/jakarta">
-                      View Details
-                      <ArrowRight className="w-4 h-4 ml-2" />
-                    </Link>
-                  </Button>
                 </CardContent>
               </Card>
             </ScrollReveal>

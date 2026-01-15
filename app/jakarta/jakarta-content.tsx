@@ -144,7 +144,7 @@ export default function JakartaContent() {
             transition={{ duration: 0.8, delay: 1 }}
             className="text-muted-foreground text-xl md:text-2xl mb-4"
           >
-            #BalqisErlanForever
+            #LANdingtoQIS
           </motion.p>
 
           <motion.div
@@ -180,13 +180,6 @@ export default function JakartaContent() {
           transition={{ duration: 0.8, delay: 1.8 }}
           className="absolute bottom-8 left-1/2 -translate-x-1/2"
         >
-          <motion.div
-            animate={{ y: [0, 10, 0] }}
-            transition={{ duration: 1.5, repeat: Number.POSITIVE_INFINITY }}
-            className="text-muted-foreground"
-          >
-            <span className="text-sm">Scroll to explore</span>
-          </motion.div>
         </motion.div>
       </section>
 
@@ -208,7 +201,7 @@ export default function JakartaContent() {
                 <CardContent className="p-0">
                   <div className="aspect-[3/4] relative">
                     <Image
-                      src="/elegant-bride-portrait-indonesian-woman-hijab.jpg"
+                      src="balqis.jpg"
                       alt={WEDDING_DATA.bride.name}
                       fill
                       className="object-cover"
@@ -217,7 +210,7 @@ export default function JakartaContent() {
                     <div className="absolute bottom-0 left-0 right-0 p-6">
                       <p className="text-primary text-sm font-medium mb-1">{WEDDING_DATA.bride.name}</p>
                       <h3 className="font-serif text-2xl text-foreground">{WEDDING_DATA.bride.fullName}</h3>
-                      <p className="text-muted-foreground text-sm mt-1">{WEDDING_DATA.bride.parents}</p>
+                      <p className="text-muted-foreground text-sm mt-1">Daughter of Bapak Lili Zainal & Ibu Ida Ul Hasanah</p>
                     </div>
                   </div>
                 </CardContent>
@@ -244,7 +237,7 @@ export default function JakartaContent() {
                 <CardContent className="p-0">
                   <div className="aspect-[3/4] relative">
                     <Image
-                      src="/elegant-groom-portrait-indonesian-man-formal.jpg"
+                      src="/erlan.jpg"
                       alt={WEDDING_DATA.groom.name}
                       fill
                       className="object-cover"
@@ -253,7 +246,7 @@ export default function JakartaContent() {
                     <div className="absolute bottom-0 left-0 right-0 p-6">
                       <p className="text-primary text-sm font-medium mb-1">{WEDDING_DATA.groom.name}</p>
                       <h3 className="font-serif text-2xl text-foreground">{WEDDING_DATA.groom.fullName}</h3>
-                      <p className="text-muted-foreground text-sm mt-1">{WEDDING_DATA.groom.parents}</p>
+                      <p className="text-muted-foreground text-sm mt-1">Son of (Alm) Arief Mulyana & Ibu Samiyah Suhana</p>
 
                     </div>
                   </div>
@@ -282,7 +275,7 @@ export default function JakartaContent() {
                   {/* Image Side */}
                   <div className="aspect-video md:aspect-auto relative">
                     <Image
-                      src="/modern-elegant-wedding-venue-jakarta-ballroom.jpg"
+                      src="/villa.jpg"
                       alt="Venue"
                       fill
                       className="object-cover"
@@ -385,7 +378,7 @@ export default function JakartaContent() {
               <ScrollReveal key={i} delay={i * 100}>
                 <div className={`${item.span} ${item.aspect} relative rounded-xl overflow-hidden group cursor-pointer`}>
                   <Image
-                    src={`/romantic-couple-prewedding-photo-.jpg?height=600&width=600&query=romantic couple prewedding modern photoshoot ${i + 1}`}
+                    src={`/balqis.jpg?height=600&width=600 ${i + 1}`}
                     alt={`Gallery ${i + 1}`}
                     fill
                     className="object-cover transition-transform duration-700 group-hover:scale-110"
@@ -510,9 +503,9 @@ export default function JakartaContent() {
           <div className="flex items-center justify-center gap-2 text-muted-foreground text-sm">
             <span>Made with</span>
             <Heart className="w-4 h-4 text-accent fill-current" />
-            <span>for our special day</span>
+            <span>by Bride & Groom</span>
           </div>
-          <p className="text-xs text-muted-foreground mt-4">© 2026 #BalqisErlanForever</p>
+          <p className="text-xs text-muted-foreground mt-4">© 2026 Balqis & Erlan</p>
         </motion.div>
       </footer>
     </main>

@@ -14,7 +14,7 @@ export function WeddingFooter() {
         <div className="flex items-center justify-center gap-2 text-muted-foreground text-sm">
           <span>Made with</span>
           <Heart className="w-4 h-4 text-accent fill-current" />
-          <span>for our special day</span>
+          <span>by Bride & Groom</span>
         </div>
         <p className="text-xs text-muted-foreground mt-4">© 2026 Balqis & Erlan Wedding</p>
       </div>
