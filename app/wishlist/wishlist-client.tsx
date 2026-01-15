@@ -3,6 +3,7 @@
 import { useState } from "react"
 import Link from "next/link"
 import Image from "next/image"
+import { useRouter } from "next/navigation" // Import useRouter
 import { motion } from "framer-motion"
 import { Gift, Check, ExternalLink, ArrowLeft, Copy, Search } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -20,8 +21,9 @@ import {
 } from "@/components/ui/dialog"
 import { ScrollReveal } from "@/components/wedding/scroll-reveal"
 import { FloralDivider } from "@/components/wedding/floral-divider"
+// Jika kamu punya component toast (misal Sonner), bisa di-uncomment:
+// import { toast } from "sonner" 
 
-// Interface disederhanakan
 interface WishlistItem {
   id: string
   name: string
@@ -46,12 +48,14 @@ interface WishlistClientProps {
 }
 
 export function WishlistClient({ initialItems, bankAccounts }: WishlistClientProps) {
+  const router = useRouter() // Inisialisasi router
   const [items, setItems] = useState<WishlistItem[]>(initialItems)
   const [searchQuery, setSearchQuery] = useState("")
   const [statusFilter, setStatusFilter] = useState("all")
   const [claimingId, setClaimingId] = useState<string | null>(null)
   const [claimerName, setClaimerName] = useState("")
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null)
+  const [isSubmitting, setIsSubmitting] = useState(false) // State loading
 
   const filteredItems = items.filter((item) => {
     const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -62,21 +66,41 @@ export function WishlistClient({ initialItems, bankAccounts }: WishlistClientPro
     return matchesSearch && matchesStatus
   })
 
-  // --- LOGIKA SIMULASI KLAIM (TANPA DATABASE) ---
-  const handleClaim = (itemId: string) => {
+  // --- LOGIKA KLAIM KE DATABASE ---
+  const handleClaim = async (itemId: string) => {
     if (!claimerName.trim()) return
 
-    // Simulasi loading sebentar
-    setTimeout(() => {
-      setItems(
-        items.map((item) => 
-          item.id === itemId ? { ...item, is_claimed: true, claimed_by: claimerName } : item
-        )
-      )
+    setIsSubmitting(true)
+
+    try {
+      const response = await fetch("/api/wishlist/claim", { 
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          itemId,
+          claimedBy: claimerName,
+        }),
+      })
+
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw new Error(result.error || "Gagal melakukan klaim")
+      }
+
+      // Sukses
       setClaimingId(null)
       setClaimerName("")
-      alert("Berhasil diklaim! (Mode Simulasi: Data akan reset jika di-refresh)")
-    }, 500)
+      alert("Berhasil diklaim! Terima kasih.") // Ganti dengan toast.success jika ada
+      
+      // Refresh halaman agar data terbaru muncul
+      router.refresh() 
+      
+    } catch (error: any) {
+      alert(error.message) // Ganti dengan toast.error jika ada
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   const formatPrice = (price: number | null) => {
@@ -115,36 +139,6 @@ export function WishlistClient({ initialItems, bankAccounts }: WishlistClientPro
             </p>
           </motion.div>
 
-          <FloralDivider className="mt-8" />
-        </div>
-      </section>
-
-      {/* Bank Accounts */}
-      <section className="py-8 px-6 bg-background">
-        <div className="max-w-4xl mx-auto">
-          <ScrollReveal>
-            <h2 className="font-serif text-2xl text-foreground text-center mb-6">Transfer Langsung</h2>
-            <div className="grid md:grid-cols-2 gap-4">
-              {bankAccounts.map((account, index) => (
-                <Card key={account.id} className="bg-card border-border">
-                  <CardContent className="p-6">
-                    <p className="text-primary font-medium mb-2">{account.bank_name}</p>
-                    <div className="flex items-center justify-between gap-4 mb-2">
-                      <p className="font-mono text-xl text-foreground">{account.account_number}</p>
-                      <Button variant="ghost" size="sm" onClick={() => copyToClipboard(account.account_number, index)}>
-                        {copiedIndex === index ? (
-                          <Check className="w-4 h-4 text-primary" />
-                        ) : (
-                          <Copy className="w-4 h-4" />
-                        )}
-                      </Button>
-                    </div>
-                    <p className="text-muted-foreground text-sm">a.n. {account.account_holder}</p>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </ScrollReveal>
         </div>
       </section>
 
@@ -235,7 +229,7 @@ export function WishlistClient({ initialItems, bankAccounts }: WishlistClientPro
                           <Button asChild variant="outline" size="sm" className="flex-1 bg-transparent">
                             <a href={item.shop_link} target="_blank" rel="noopener noreferrer">
                               <ExternalLink className="w-4 h-4 mr-1" />
-                              Lihat
+                              Link Shopee
                             </a>
                           </Button>
                         )}
@@ -275,9 +269,9 @@ export function WishlistClient({ initialItems, bankAccounts }: WishlistClientPro
                                 <Button
                                   onClick={() => handleClaim(item.id)}
                                   className="w-full"
-                                  disabled={!claimerName.trim()}
+                                  disabled={!claimerName.trim() || isSubmitting}
                                 >
-                                  Saya akan memberikan ini
+                                  {isSubmitting ? "Memproses..." : "Saya akan memberikan ini"}
                                 </Button>
                               </div>
                             </DialogContent>
@@ -290,6 +284,38 @@ export function WishlistClient({ initialItems, bankAccounts }: WishlistClientPro
               ))}
             </div>
           )}
+        </div>
+      </section>
+
+                <FloralDivider className="mt-8" />
+
+
+      {/* Bank Accounts */}
+      <section className="py-8 px-6 bg-background">
+        <div className="max-w-4xl mx-auto">
+          <ScrollReveal>
+            <h2 className="font-serif text-2xl text-foreground text-center mb-6">Menerima Juga Mentahan Via Transfer</h2>
+            <div className="grid md:grid-cols-2 gap-4">
+              {bankAccounts.map((account, index) => (
+                <Card key={account.id} className="bg-card border-border">
+                  <CardContent className="p-6">
+                    <p className="text-primary font-medium mb-2">{account.bank_name}</p>
+                    <div className="flex items-center justify-between gap-4 mb-2">
+                      <p className="font-mono text-xl text-foreground">{account.account_number}</p>
+                      <Button variant="ghost" size="sm" onClick={() => copyToClipboard(account.account_number, index)}>
+                        {copiedIndex === index ? (
+                          <Check className="w-4 h-4 text-primary" />
+                        ) : (
+                          <Copy className="w-4 h-4" />
+                        )}
+                      </Button>
+                    </div>
+                    <p className="text-muted-foreground text-sm">a.n. {account.account_holder}</p>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </ScrollReveal>
         </div>
       </section>
 
