@@ -1,34 +1,41 @@
-"use client"
+"use client";
 
-import type React from "react"
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Check, Loader2, Users, Phone } from "lucide-react" // Import icon Phone
-import { ScrollReveal } from "./scroll-reveal"
-import { toast } from "sonner" // Jika pakai sonner, atau alert biasa
+import type React from "react";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Check, Loader2, Users, Phone } from "lucide-react"; // Import icon Phone
+import { ScrollReveal } from "./scroll-reveal";
+import { toast } from "sonner"; // Jika pakai sonner, atau alert biasa
 
 interface RSVPFormProps {
-  eventType: "lampung" | "jakarta"
-  guestId?: string
+  eventType: "lampung" | "jakarta";
+  guestId?: string;
 }
 
 export function RSVPForm({ eventType, guestId }: RSVPFormProps) {
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [isSubmitted, setIsSubmitted] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     phone: "", // Tambah state phone
     attendance: "hadir",
     guestCount: "1",
-  })
+  });
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsSubmitting(true)
+    e.preventDefault();
+    setIsSubmitting(true);
 
     try {
       const response = await fetch("/api/rsvp", {
@@ -40,22 +47,22 @@ export function RSVPForm({ eventType, guestId }: RSVPFormProps) {
           guestId,
           guestCount: Number.parseInt(formData.guestCount),
         }),
-      })
+      });
 
-      const result = await response.json()
+      const result = await response.json();
 
       if (!response.ok) {
-        throw new Error(result.error || "Gagal mengirim RSVP")
+        throw new Error(result.error || "Gagal mengirim RSVP");
       }
 
-      setIsSubmitted(true)
+      setIsSubmitted(true);
     } catch (error: any) {
-      console.error("RSVP submission error:", error)
-      alert("Gagal: " + error.message) // Tampilkan error ke user
+      console.error("RSVP submission error:", error);
+      alert("Gagal: " + error.message); // Tampilkan error ke user
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
-  }
+  };
 
   if (isSubmitted) {
     return (
@@ -65,22 +72,28 @@ export function RSVPForm({ eventType, guestId }: RSVPFormProps) {
             <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
               <Check className="w-8 h-8 text-primary" />
             </div>
-            <h3 className="font-serif text-2xl text-foreground mb-2">Terima Kasih!</h3>
+            <h3 className="font-serif text-2xl text-foreground mb-2">
+              Terima Kasih!
+            </h3>
             <p className="text-muted-foreground">
               Konfirmasi kehadiran Anda telah kami terima.
             </p>
           </CardContent>
         </Card>
       </ScrollReveal>
-    )
+    );
   }
 
   return (
     <ScrollReveal>
       <Card className="bg-card border-border max-w-md mx-auto">
         <CardHeader className="text-center pb-4">
-          <CardTitle className="font-serif text-2xl text-foreground">Konfirmasi Kehadiran</CardTitle>
-          <p className="text-muted-foreground text-sm mt-2">Mohon konfirmasi kehadiran Anda</p>
+          <CardTitle className="font-serif text-2xl text-foreground">
+            Konfirmasi Kehadiran
+          </CardTitle>
+          <p className="text-muted-foreground text-sm mt-2">
+            Mohon konfirmasi kehadiran Anda
+          </p>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
@@ -90,7 +103,9 @@ export function RSVPForm({ eventType, guestId }: RSVPFormProps) {
               <Input
                 id="name"
                 value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, name: e.target.value })
+                }
                 placeholder="Masukkan nama Anda"
                 required
               />
@@ -103,7 +118,9 @@ export function RSVPForm({ eventType, guestId }: RSVPFormProps) {
                 id="phone"
                 type="tel"
                 value={formData.phone}
-                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, phone: e.target.value })
+                }
                 placeholder="Contoh: 08123456789"
                 required
               />
@@ -113,7 +130,9 @@ export function RSVPForm({ eventType, guestId }: RSVPFormProps) {
               <Label>Apakah Anda akan hadir?</Label>
               <RadioGroup
                 value={formData.attendance}
-                onValueChange={(value) => setFormData({ ...formData, attendance: value })}
+                onValueChange={(value) =>
+                  setFormData({ ...formData, attendance: value })
+                }
                 className="grid grid-cols-2 gap-4"
               >
                 <Label
@@ -124,7 +143,11 @@ export function RSVPForm({ eventType, guestId }: RSVPFormProps) {
                       : "border-border hover:border-primary/50"
                   }`}
                 >
-                  <RadioGroupItem value="hadir" id="hadir" className="sr-only" />
+                  <RadioGroupItem
+                    value="hadir"
+                    id="hadir"
+                    className="sr-only"
+                  />
                   <span className="text-foreground">Hadir</span>
                 </Label>
                 <Label
@@ -135,7 +158,11 @@ export function RSVPForm({ eventType, guestId }: RSVPFormProps) {
                       : "border-border hover:border-primary/50"
                   }`}
                 >
-                  <RadioGroupItem value="tidak_hadir" id="tidak_hadir" className="sr-only" />
+                  <RadioGroupItem
+                    value="tidak_hadir"
+                    id="tidak_hadir"
+                    className="sr-only"
+                  />
                   <span className="text-foreground">Maaf, Tidak</span>
                 </Label>
               </RadioGroup>
@@ -143,18 +170,24 @@ export function RSVPForm({ eventType, guestId }: RSVPFormProps) {
 
             {formData.attendance === "hadir" && (
               <div className="space-y-2">
-                <Label htmlFor="guestCount" className="flex items-center gap-2">
+                <Label className="flex items-center gap-2">
                   <Users className="w-4 h-4" />
                   Jumlah Tamu
                 </Label>
-                <Input
-                  id="guestCount"
-                  type="number"
-                  min="1"
-                  max="5"
-                  value={formData.guestCount}
-                  onChange={(e) => setFormData({ ...formData, guestCount: e.target.value })}
-                />
+                <Select
+                  value={formData.guestCount.toString()} // Pastikan value berupa string
+                  onValueChange={(value) =>
+                    setFormData({ ...formData, guestCount: value })
+                  }
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Pilih jumlah tamu" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="1">1 Orang</SelectItem>
+                    <SelectItem value="2">2 Orang</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             )}
 
@@ -172,5 +205,5 @@ export function RSVPForm({ eventType, guestId }: RSVPFormProps) {
         </CardContent>
       </Card>
     </ScrollReveal>
-  )
+  );
 }
