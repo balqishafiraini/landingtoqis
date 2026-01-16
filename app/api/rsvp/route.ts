@@ -75,7 +75,7 @@ export async function POST(request: NextRequest) {
 
     // 4. KIRIM WA
     if (isAttending) {
-      const fonnteToken = "33nfMH5zXXQe3YpUuAscCtPB9fQPkcGLZkBaSLTDF" // Pastikan Token Benar
+      const fonnteToken = "TbTg6qzmiVDg5aCXSvuq" // Pastikan Token Benar
       
       const message = `Halo ${name},\n\nTerima kasih telah melakukan konfirmasi kehadiran.\n\nBerikut adalah QR Code akses masuk Anda.\nHarap tunjukkan QR Code ini kepada penerima tamu saat acara.\n\nSampai jumpa!`
 
