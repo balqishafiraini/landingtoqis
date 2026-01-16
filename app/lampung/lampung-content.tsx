@@ -133,8 +133,8 @@ export default function LampungContent() {
             className="mt-8"
           >
             <p className="text-muted-foreground text-lg mb-2">Akad Nikah & Walimatul Ursy</p>
-            <p className="font-serif text-2xl text-foreground">Sabtu, 15 Februari 2026</p>
-            <p className="text-muted-foreground mt-2">Lampung Selatan</p>
+            <p className="font-serif text-2xl text-foreground">Sabtu, 23 Mei 2026</p>
+            <p className="text-muted-foreground mt-2">Bandar Lampung</p>
           </motion.div>
 
           <motion.div

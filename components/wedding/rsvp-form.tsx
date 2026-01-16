@@ -1,15 +1,15 @@
 "use client"
 
 import type React from "react"
-
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Check, Loader2, Users } from "lucide-react"
+import { Check, Loader2, Users, Phone } from "lucide-react" // Import icon Phone
 import { ScrollReveal } from "./scroll-reveal"
+import { toast } from "sonner" // Jika pakai sonner, atau alert biasa
 
 interface RSVPFormProps {
   eventType: "lampung" | "jakarta"
@@ -21,6 +21,7 @@ export function RSVPForm({ eventType, guestId }: RSVPFormProps) {
   const [isSubmitted, setIsSubmitted] = useState(false)
   const [formData, setFormData] = useState({
     name: "",
+    phone: "", // Tambah state phone
     attendance: "hadir",
     guestCount: "1",
   })
@@ -41,11 +42,16 @@ export function RSVPForm({ eventType, guestId }: RSVPFormProps) {
         }),
       })
 
-      if (response.ok) {
-        setIsSubmitted(true)
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw new Error(result.error || "Gagal mengirim RSVP")
       }
-    } catch (error) {
+
+      setIsSubmitted(true)
+    } catch (error: any) {
       console.error("RSVP submission error:", error)
+      alert("Gagal: " + error.message) // Tampilkan error ke user
     } finally {
       setIsSubmitting(false)
     }
@@ -61,7 +67,7 @@ export function RSVPForm({ eventType, guestId }: RSVPFormProps) {
             </div>
             <h3 className="font-serif text-2xl text-foreground mb-2">Terima Kasih!</h3>
             <p className="text-muted-foreground">
-              Konfirmasi kehadiran Anda telah kami terima. Kami sangat menantikan kehadiran Anda.
+              Konfirmasi kehadiran Anda telah kami terima.
             </p>
           </CardContent>
         </Card>
@@ -74,10 +80,11 @@ export function RSVPForm({ eventType, guestId }: RSVPFormProps) {
       <Card className="bg-card border-border max-w-md mx-auto">
         <CardHeader className="text-center pb-4">
           <CardTitle className="font-serif text-2xl text-foreground">Konfirmasi Kehadiran</CardTitle>
-          <p className="text-muted-foreground text-sm mt-2">Mohon konfirmasi kehadiran Anda sebelum tanggal acara</p>
+          <p className="text-muted-foreground text-sm mt-2">Mohon konfirmasi kehadiran Anda</p>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Input Nama */}
             <div className="space-y-2">
               <Label htmlFor="name">Nama Lengkap</Label>
               <Input
@@ -89,8 +96,21 @@ export function RSVPForm({ eventType, guestId }: RSVPFormProps) {
               />
             </div>
 
+            {/* Input No HP (BARU) */}
+            <div className="space-y-2">
+              <Label htmlFor="phone">Nomor WhatsApp / HP</Label>
+              <Input
+                id="phone"
+                type="tel"
+                value={formData.phone}
+                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                placeholder="Contoh: 08123456789"
+                required
+              />
+            </div>
+
             <div className="space-y-3">
-              <Label>Konfirmasi Kehadiran</Label>
+              <Label>Apakah Anda akan hadir?</Label>
               <RadioGroup
                 value={formData.attendance}
                 onValueChange={(value) => setFormData({ ...formData, attendance: value })}
@@ -116,7 +136,7 @@ export function RSVPForm({ eventType, guestId }: RSVPFormProps) {
                   }`}
                 >
                   <RadioGroupItem value="tidak_hadir" id="tidak_hadir" className="sr-only" />
-                  <span className="text-foreground">Tidak Hadir</span>
+                  <span className="text-foreground">Maaf, Tidak</span>
                 </Label>
               </RadioGroup>
             </div>

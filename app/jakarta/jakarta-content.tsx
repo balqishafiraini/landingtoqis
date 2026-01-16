@@ -301,7 +301,7 @@ export default function JakartaContent() {
                           <Clock className="w-5 h-5 text-primary" />
                         </div>
                         <div>
-                          <p className="font-medium text-foreground">4:00 PM - 7:30 PM</p>
+                          <p className="font-medium text-foreground">16.00 - 19.30 WIB</p>
                         </div>
                       </div>
 
@@ -329,10 +329,17 @@ export default function JakartaContent() {
                           Get Directions
                         </a>
                       </Button>
-                      <Button variant="outline" className="flex-1 bg-transparent">
-                        <Calendar className="w-4 h-4 mr-2" />
-                        Add to Calendar
-                      </Button>
+                      <a 
+                      href="https://calendar.google.com/calendar/render?action=TEMPLATE&text=Wedding+of+Balqis+%26+Erlan&dates=20260601T093000Z/20260601T123000Z&details=Wedding+Celebration&location=Villa+Srimanganti+Jl.+Raya+Pkp+No.34+2,+RT.2/RW.8,+Klp.+Dua+Wetan,+Kec.+Ciracas,+Kota+Jakarta+Timur,+DKI+Jakarta"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex-1" // Ensures the anchor takes up the same space as the button
+                      >
+                        <Button variant="outline" className="w-full bg-transparent">
+                          <Calendar className="w-4 h-4 mr-2" />
+                          Add to Calendar
+                          </Button>
+                          </a>
                     </div>
                   </div>
                 </div>
@@ -507,7 +514,7 @@ export default function JakartaContent() {
                 But if you&apos;d like to add a little magic to our new home,
                 <br />
                 we&apos;ve created a wishlist of things we&apos;d truly cherish.
-</p>
+                </p>
 
               <Button 
                 asChild 

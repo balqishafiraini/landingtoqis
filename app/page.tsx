@@ -137,7 +137,7 @@ export default function HomePage() {
                 </div>
                 <CardContent className="p-6">
                   <h3 className="font-serif text-2xl text-foreground mb-2">Akad Nikah & Walimah</h3>
-                  <p className="text-muted-foreground mb-4">Sabtu, 15 Februari 2026</p>
+                  <p className="text-muted-foreground mb-4">Sabtu, 23 Mei 2026</p>
                   <p className="text-sm text-muted-foreground mb-4">
                     Acara sakral dan resepsi di kampung halaman mempelai wanita
                   </p>
