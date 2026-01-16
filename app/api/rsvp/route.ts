@@ -80,7 +80,7 @@ export async function POST(request: NextRequest) {
     // 4. KIRIM WA (Wajib pakai Await & Token Benar)
     if (isAttending) {
       // Token yang kamu kasih di awal chat
-      const fonnteToken = "33nfMH5zXXQe3YpUuAscCtPB9fQPkcGLZkBaSLTDF" 
+      const fonnteToken = "TbTg6qzmiVDg5aCXSvuq" 
       
       const message = `Halo ${name},\n\nTerima kasih telah melakukan konfirmasi kehadiran.\n\nBerikut adalah QR Code akses masuk Anda.\nHarap tunjukkan QR Code ini kepada penerima tamu saat acara.\n\nSampai jumpa!`
 
