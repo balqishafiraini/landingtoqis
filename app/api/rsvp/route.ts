@@ -15,7 +15,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { name, phone, attendance, guestCount, eventType, guestId } = body
     
-    // [PENTING] Gunakan domain Vercel kamu agar link QR valid (bukan localhost)
+    // Gunakan domain public agar QR valid
     const publicDomain = "https://landingtoqis.com" 
 
     if (!name || !phone) {
@@ -25,12 +25,9 @@ export async function POST(request: NextRequest) {
     const supabase = await createClient()
     let finalGuestId = guestId
 
-    // ----------------------------------------------------------------
-    // 1. BUAT TAMU BARU (Jika guestId belum ada)
-    // ----------------------------------------------------------------
+    // 1. Handle Guest Baru
     if (!finalGuestId) {
       const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, "-") + "-" + Math.floor(Math.random() * 1000)
-      
       const { data: newGuest, error: guestError } = await supabase
         .from("guests")
         .insert({
@@ -43,15 +40,12 @@ export async function POST(request: NextRequest) {
         .single()
 
       if (guestError) {
-        console.error("❌ Guest Error:", guestError)
         return NextResponse.json({ error: "Gagal membuat data tamu" }, { status: 500 })
       }
       finalGuestId = newGuest.id
     }
 
-    // ----------------------------------------------------------------
-    // 2. SIMPAN RSVP KE DATABASE
-    // ----------------------------------------------------------------
+    // 2. Simpan RSVP
     const isAttending = attendance === "hadir"
     
     const { data: rsvpData, error: rsvpError } = await supabase
@@ -65,39 +59,28 @@ export async function POST(request: NextRequest) {
         guest_count: isAttending ? guestCount : 0,
         checked_in: false 
       })
-      .select("id") // PENTING: Kita butuh ID ini untuk bikin QR Code
+      .select("id")
       .single()
 
     if (rsvpError) {
-      console.error("❌ RSVP Error:", rsvpError)
       return NextResponse.json({ error: "Gagal menyimpan RSVP: " + rsvpError.message }, { status: 500 })
     }
 
-    // ----------------------------------------------------------------
-    // 3. GENERATE QR CODE & UPDATE DATABASE (Bagian ini yang sebelumnya HILANG)
-    // ----------------------------------------------------------------
-    
-    // Link khusus untuk Admin melakukan Check-in
+    // 3. Generate QR Code
     const checkInUrl = `${publicDomain}/admin/check-in/${rsvpData.id}`
     
-    // Update kolom qr_code di database dengan link tersebut
-    const { error: updateError } = await supabase
+    // Update DB dengan QR Link
+    await supabase
       .from("rsvp")
       .update({ qr_code: checkInUrl })
       .eq("id", rsvpData.id)
-      
-    if (updateError) console.error("❌ Gagal update QR ke DB:", updateError)
 
-    // Generate URL Gambar QR Code (untuk dikirim ke WA)
     const qrImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(checkInUrl)}`
 
-    // ----------------------------------------------------------------
-    // 4. KIRIM WHATSAPP VIA FONNTE
-    // ----------------------------------------------------------------
+    // 4. KIRIM WA (Wajib pakai Await & Token Benar)
     if (isAttending) {
-      console.log("▶️ Mengirim WA ke:", formatPhoneNumber(phone))
-      
-      const fonnteToken = "TbTg6qzmiVDg5aCXSvuq" // Token Kamu
+      // Token yang kamu kasih di awal chat
+      const fonnteToken = "33nfMH5zXXQe3YpUuAscCtPB9fQPkcGLZkBaSLTDF" 
       
       const message = `Halo ${name},\n\nTerima kasih telah melakukan konfirmasi kehadiran.\n\nBerikut adalah QR Code akses masuk Anda.\nHarap tunjukkan QR Code ini kepada penerima tamu saat acara.\n\nSampai jumpa!`
 
@@ -105,26 +88,26 @@ export async function POST(request: NextRequest) {
       formData.append("target", formatPhoneNumber(phone))
       formData.append("message", message)
       formData.append("url", qrImageUrl) 
-      formData.append("filename", "qr-code.png") // [FIX] Wajib ada agar terkirim sebagai gambar
+      formData.append("filename", "qr-code.png") // Wajib ada filename
       formData.append("countryCode", "62")
 
       try {
-        // Kirim request ke Fonnte (tanpa await agar user tidak menunggu lama)
-        fetch("https://api.fonnte.com/send", {
+        // [FIX] Tambahkan AWAIT agar Vercel tidak memutus koneksi sebelum terkirim
+        const res = await fetch("https://api.fonnte.com/send", {
           method: "POST",
           headers: { Authorization: fonnteToken },
           body: formData,
         })
+        console.log("Fonnte Status:", await res.text())
       } catch (e) {
-        console.error("❌ Gagal kirim WA:", e)
+        console.error("Gagal kirim WA:", e)
       }
     }
 
-    // Kembalikan URL QR ke frontend agar bisa ditampilkan di layar "Terima Kasih"
     return NextResponse.json({ success: true, qrImageUrl })
     
   } catch (error: any) {
-    console.error("❌ System Error:", error)
+    console.error("RSVP API error:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
 }
