@@ -1,67 +1,119 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 
+// Helper format nomor HP ke 62
+function formatPhoneNumber(phone: string) {
+  let formatted = phone.replace(/\D/g, "")
+  if (formatted.startsWith("0")) {
+    formatted = "62" + formatted.slice(1)
+  }
+  return formatted
+}
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    // Pastikan phone diambil dari body
     const { name, phone, attendance, guestCount, eventType, guestId } = body
+    const origin = request.headers.get("origin") || "https://landingtoqis.com"
 
-    // Validasi sederhana
+    console.log("▶️ [DEBUG] Memulai RSVP untuk:", name, phone) // Log 1
+
     if (!name || !phone) {
        return NextResponse.json({ error: "Nama dan Nomor HP wajib diisi" }, { status: 400 })
     }
 
     const supabase = await createClient()
-
     let finalGuestId = guestId
 
-    // 1. Jika tidak ada guestId (Tamu Baru), Buat Guest Dulu
+    // 1. Buat Guest (Jika baru)
     if (!finalGuestId) {
-      // Bikin slug simple dari nama + angka random biar unik
       const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, "-") + "-" + Math.floor(Math.random() * 1000)
-
       const { data: newGuest, error: guestError } = await supabase
         .from("guests")
         .insert({
           name: name,
-          phone: phone, // Masukkan phone ke tabel guest juga
+          phone: phone,
           event_type: eventType || "both",
-          invitation_slug: slug, // WAJIB ADA sesuai schema database
+          invitation_slug: slug,
         })
         .select("id")
         .single()
 
       if (guestError) {
-        console.error("Error creating guest:", guestError)
+        console.error("❌ [ERROR] Gagal create guest:", guestError)
         return NextResponse.json({ error: "Gagal membuat data tamu" }, { status: 500 })
       }
-
       finalGuestId = newGuest.id
     }
 
-    // 2. Insert ke tabel RSVP
-    // Mapping: "hadir" -> true, "tidak_hadir" -> false
+    // 2. Simpan RSVP
     const isAttending = attendance === "hadir"
-
-    const { error: rsvpError } = await supabase.from("rsvp").insert({
-      guest_id: finalGuestId,
-      guest_name: name, // WAJIB ADA sesuai schema database
-      phone: phone,     // WAJIB ADA sesuai schema database
-      event_type: eventType,
-      attending: isAttending, // Ubah ke boolean (bukan attendance_status string)
-      guest_count: isAttending ? guestCount : 0,
-    })
+    
+    const { data: rsvpData, error: rsvpError } = await supabase
+      .from("rsvp")
+      .insert({
+        guest_id: finalGuestId,
+        guest_name: name,
+        phone: phone,
+        event_type: eventType,
+        attending: isAttending,
+        guest_count: isAttending ? guestCount : 0,
+        checked_in: false 
+      })
+      .select("id")
+      .single()
 
     if (rsvpError) {
-      console.error("Error creating RSVP:", rsvpError)
+      console.error("❌ [ERROR] Gagal save RSVP:", rsvpError)
       return NextResponse.json({ error: "Gagal menyimpan RSVP: " + rsvpError.message }, { status: 500 })
     }
 
-    return NextResponse.json({ success: true })
+    // 3. Generate QR Link
+    const checkInUrl = `${origin}/admin/check-in/${rsvpData.id}`
+    
+    await supabase
+      .from("rsvp")
+      .update({ qr_code: checkInUrl })
+      .eq("id", rsvpData.id)
+
+    const qrImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(checkInUrl)}`
+
+    // 4. KIRIM WA (DEBUG VERSION)
+    if (isAttending) {
+      console.log("▶️ [DEBUG] Mencoba kirim WA ke:", formatPhoneNumber(phone))
+      
+      const fonnteToken = "TbTg6qzmiVDg5aCXSvuq" // Pastikan ini token ASLI kamu
+      
+      const message = `Halo ${name},\n\nTerima kasih telah melakukan konfirmasi kehadiran.\n\nBerikut adalah QR Code akses masuk Anda.\nHarap tunjukkan QR Code ini kepada penerima tamu saat acara.\n\nSampai jumpa!`
+
+      const formData = new FormData()
+      formData.append("target", formatPhoneNumber(phone))
+      formData.append("message", message)
+      formData.append("url", qrImageUrl)
+      formData.append("countryCode", "62")
+
+      try {
+        // Kita pakai AWAIT agar bisa melihat responnya
+        const response = await fetch("https://api.fonnte.com/send", {
+          method: "POST",
+          headers: { Authorization: fonnteToken },
+          body: formData,
+        })
+
+        const responseText = await response.text()
+        console.log("📡 [FONNTE RESPONSE]:", responseText) // Cek Terminal untuk melihat ini!
+
+      } catch (e) {
+        console.error("❌ [FONNTE ERROR]:", e)
+      }
+    } else {
+        console.log("ℹ️ [INFO] Tamu tidak hadir, skip kirim WA.")
+    }
+
+    return NextResponse.json({ success: true, qrImageUrl })
     
   } catch (error: any) {
-    console.error("RSVP API error:", error)
+    console.error("❌ [SYSTEM ERROR]:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
 }

@@ -14,9 +14,9 @@ import {
 } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Check, Loader2, Users, Phone } from "lucide-react"; // Import icon Phone
+import { Check, Loader2, Users } from "lucide-react";
 import { ScrollReveal } from "./scroll-reveal";
-import { toast } from "sonner"; // Jika pakai sonner, atau alert biasa
+import Image from "next/image"; // PENTING: Import Image
 
 interface RSVPFormProps {
   eventType: "lampung" | "jakarta";
@@ -26,9 +26,10 @@ interface RSVPFormProps {
 export function RSVPForm({ eventType, guestId }: RSVPFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [qrCodeUrl, setQrCodeUrl] = useState<string | null>(null); // State baru untuk QR
   const [formData, setFormData] = useState({
     name: "",
-    phone: "", // Tambah state phone
+    phone: "",
     attendance: "hadir",
     guestCount: "1",
   });
@@ -55,35 +56,65 @@ export function RSVPForm({ eventType, guestId }: RSVPFormProps) {
         throw new Error(result.error || "Gagal mengirim RSVP");
       }
 
+      // AMBIL URL QR DARI RESPONSE BACKEND
+      if (result.qrImageUrl) {
+        setQrCodeUrl(result.qrImageUrl);
+      }
+
       setIsSubmitted(true);
     } catch (error: any) {
       console.error("RSVP submission error:", error);
-      alert("Gagal: " + error.message); // Tampilkan error ke user
+      alert("Gagal: " + error.message);
     } finally {
       setIsSubmitting(false);
     }
   };
 
+  // TAMPILAN SETELAH SUKSES
   if (isSubmitted) {
     return (
       <ScrollReveal>
         <Card className="bg-card border-border max-w-md mx-auto">
-          <CardContent className="p-8 text-center">
-            <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+          <CardContent className="p-8 text-center flex flex-col items-center">
+            <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
               <Check className="w-8 h-8 text-primary" />
             </div>
             <h3 className="font-serif text-2xl text-foreground mb-2">
               Terima Kasih!
             </h3>
-            <p className="text-muted-foreground">
+            <p className="text-muted-foreground mb-6">
               Konfirmasi kehadiran Anda telah kami terima.
+              {qrCodeUrl && " QR Code juga telah dikirim ke WhatsApp Anda."}
             </p>
+
+            {/* TAMPILKAN QR CODE JIKA ADA */}
+            {qrCodeUrl && formData.attendance === "hadir" && (
+              <div className="bg-white p-4 rounded-xl shadow-sm border border-border mb-4">
+                <p className="text-xs text-muted-foreground mb-2">
+                  Tunjukkan QR ini saat datang
+                </p>
+                <div className="relative w-48 h-48 mx-auto">
+                  <Image
+                    src={qrCodeUrl}
+                    alt="QR Code Tamu"
+                    fill
+                    className="object-contain"
+                    unoptimized // Wajib true karena gambar dari url luar
+                  />
+                </div>
+              </div>
+            )}
+
+            <Button variant="outline" onClick={() => window.location.reload()}>
+              Isi Lagi
+            </Button>
           </CardContent>
         </Card>
       </ScrollReveal>
     );
   }
 
+  // TAMPILAN FORM (Sama seperti sebelumnya)
   return (
     <ScrollReveal>
       <Card className="bg-card border-border max-w-md mx-auto">
@@ -97,7 +128,6 @@ export function RSVPForm({ eventType, guestId }: RSVPFormProps) {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Input Nama */}
             <div className="space-y-2">
               <Label htmlFor="name">Nama Lengkap</Label>
               <Input
@@ -111,7 +141,6 @@ export function RSVPForm({ eventType, guestId }: RSVPFormProps) {
               />
             </div>
 
-            {/* Input No HP (BARU) */}
             <div className="space-y-2">
               <Label htmlFor="phone">Nomor WhatsApp / HP</Label>
               <Input
@@ -175,7 +204,7 @@ export function RSVPForm({ eventType, guestId }: RSVPFormProps) {
                   Jumlah Tamu
                 </Label>
                 <Select
-                  value={formData.guestCount.toString()} // Pastikan value berupa string
+                  value={formData.guestCount.toString()}
                   onValueChange={(value) =>
                     setFormData({ ...formData, guestCount: value })
                   }
