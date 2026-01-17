@@ -50,6 +50,7 @@ export async function POST(request: NextRequest) {
       finalGuestId = newGuest.id
     }
 
+    // 2. Generate ID & Link Check-in
     const rsvpId = randomUUID()
     const checkInUrl = `${publicDomain}/admin/check-in/${rsvpId}`
     const isAttending = attendance === "hadir"
@@ -82,36 +83,24 @@ export async function POST(request: NextRequest) {
       console.log("📱 Mulai proses kirim WA ke:", formatPhoneNumber(phone))
 
       try {
-        // Download gambar QR dari API
-        const imageResponse = await fetch(qrImageUrl)
-        
-        if (!imageResponse.ok) {
-          throw new Error(`Gagal download QR: ${imageResponse.status}`)
-        }
-        
-        // Convert ke base64
-        const imageBuffer = await imageResponse.arrayBuffer()
-        const base64Image = Buffer.from(imageBuffer).toString('base64')
-        const base64DataUrl = `data:image/png;base64,${base64Image}`
-
-        // Pesan WA
+        // Event detail berdasarkan tipe
         const eventDetail =
-  eventType === "lampung"
-    ? `*Akad Nikah & Walimatul Ursy*
+          eventType === "lampung"
+            ? `*Akad Nikah & Walimatul Ursy*
 Bertempat di Kediaman Bapak Lili Zainal
 Jl. Romowijoyo No. 56, Sawah Lama
 Tanjung Karang Timur, Bandar Lampung
 Maps: https://maps.app.goo.gl/Hp6SbNi72Lm6wAXPA`
-    : eventType === "jakarta"
-    ? `*Reception – Outdoor Garden Party (Evening)*
+            : eventType === "jakarta"
+            ? `*Reception – Outdoor Garden Party (Evening)*
 Villa Srimanganti
 Jl. Raya PKP No.34 2, RT.2/RW.8
 Klp. Dua Wetan, Kec. Ciracas
 Jakarta Timur, DKI Jakarta
 Maps: https://maps.app.goo.gl/nWQiJHJrwhafYwf89`
-    : `*Akad Nikah & Resepsi*`;
+            : `*Akad Nikah & Resepsi*`;
 
-const message = `Halo *${name}*,
+        const message = `Halo *${name}*,
 
 Terima kasih telah melakukan konfirmasi kehadiran pada acara pernikahan kami.
 
@@ -125,17 +114,17 @@ Silakan tunjukkan QR Code ini kepada penerima tamu saat acara berlangsung.
 Hormat kami,
 _Balqis & Erlan_`;
 
-
-        // Kirim via Fonnte (FORMAT JSON)
+        // ✅ KIRIM VIA FONNTE DENGAN URL LANGSUNG
         const fonntePayload = {
           target: formatPhoneNumber(phone),
           message: message,
-          file: base64DataUrl,
-          filename: "qr-code.png",
+          url: qrImageUrl, // ← PAKAI URL LANGSUNG
           countryCode: "62"
         }
 
-        console.log("🚀 Sending to Fonnte with target:", fonntePayload.target)
+        console.log("🚀 Sending to Fonnte...")
+        console.log("   Target:", fonntePayload.target)
+        console.log("   QR URL:", qrImageUrl)
 
         const fonnteResponse = await fetch("https://api.fonnte.com/send", {
           method: "POST",
@@ -148,10 +137,12 @@ _Balqis & Erlan_`;
         
         const fonnteResult = await fonnteResponse.json()
         
+        console.log("📤 Fonnte Response:", JSON.stringify(fonnteResult, null, 2))
+        
         if (fonnteResult.status) {
-          console.log("✅ WA berhasil dikirim:", fonnteResult)
+          console.log("✅ WA berhasil dikirim!")
         } else {
-          console.error("❌ Fonnte error:", fonnteResult)
+          console.error("❌ Fonnte error:", fonnteResult.reason || fonnteResult.message || "Unknown error")
         }
 
       } catch (waError: any) {
