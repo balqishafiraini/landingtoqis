@@ -440,21 +440,6 @@ export default function AdminDashboard() {
                         </div>
 
                         <div className="space-y-2">
-                          <Label htmlFor="phone">No. WhatsApp</Label>
-                          <Input
-                            id="phone"
-                            value={newGuest.phone}
-                            onChange={(e) =>
-                              setNewGuest({
-                                ...newGuest,
-                                phone: e.target.value,
-                              })
-                            }
-                            placeholder="08123456789"
-                          />
-                        </div>
-
-                        <div className="space-y-2">
                           <Label htmlFor="eventType">Event Type *</Label>
                           <Select
                             value={newGuest.eventType}
