@@ -86,30 +86,25 @@ export async function POST(request: NextRequest) {
         // Event detail berdasarkan tipe
         const eventDetail =
           eventType === "lampung"
-            ? `*Akad Nikah & Walimatul Ursy*
+            ? 
+`*Akad Nikah & Walimatul Ursy*
 
-            Tanggal: 23 Mei 2026
-
-            Waktu: 
-            08.00 - 10.00 WIB (Akad)
-            10.00 - 14.00 (Resepsi)
-
+Tanggal: 23 Mei 2026
+Waktu: 
+08.00 - 10.00 WIB (Akad)
+10.00 - 14.00 (Resepsi)
 Tempat: Kediaman Bapak Lili Zainal
-Jl. Romowijoyo No. 56, Sawah Lama
-Tanjung Karang Timur, Bandar Lampung
-
+Jl. Romowijoyo No. 56, Sawah Lama, Tanjung Karang Timur, Bandar Lampung
 Maps: https://maps.app.goo.gl/Hp6SbNi72Lm6wAXPA`
 
             : eventType === "jakarta"
-            ? `*Reception – Outdoor Garden Evening Party*
+            ? 
+`*Reception – Outdoor Garden Evening Party*
 
-            Tanggal: 1 Juni 2026
-            Waktu: 16.00 - 19.30 WIB
-
-            Tempat: Villa Srimanganti
-Jl. Raya PKP No.34 2, RT.2/RW.8
-Klp. Dua Wetan, Kec. Ciracas
-Jakarta Timur, DKI Jakarta
+Tanggal: 1 Juni 2026
+Waktu: 16.00 - 19.30 WIB
+Tempat: Villa Srimanganti
+Jl. Raya PKP No.34 2, RT.2/RW.8, Klp. Dua Wetan, Kec. Ciracas, Jakarta Timur
 Maps: https://maps.app.goo.gl/nWQiJHJrwhafYwf89`
             : `*Akad Nikah & Resepsi*`;
 
