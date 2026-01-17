@@ -17,19 +17,19 @@ import {
 import {
   Users,
   MessageSquare,
-  Gift,
   CheckCircle2,
-  XCircle,
   Search,
   LogOut,
-  Loader2, // Import icon loading
+  Loader2,
   Trash2,
+  QrCode,
+  ScanLine,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useRouter } from "next/navigation";
-import { useToast } from "@/components/ui/use-toast"; // Pastikan path ini benar sesuai projectmu
+import { useToast } from "@/components/ui/use-toast";
 
-// Definisikan tipe data manual karena kita fetch di client
+// Definisikan tipe data
 type Guest = {
   id: string;
   name: string;
@@ -77,12 +77,14 @@ export default function AdminDashboard() {
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
 
-  // FETCH DATA SAAT HALAMAN DIBUKA
+  // STATE QR SCANNER
+  const [scanInput, setScanInput] = useState("");
+
+  // FETCH DATA
   useEffect(() => {
     const fetchData = async () => {
       setIsLoading(true);
       try {
-        // Ambil semua data secara paralel (lebih cepat)
         const [resGuests, resRsvp, resWishes, resWishlist] = await Promise.all([
           supabase
             .from("guests")
@@ -127,12 +129,27 @@ export default function AdminDashboard() {
     router.push("/admin/login");
   };
 
-  // Fungsi Hapus Ucapan (Contoh)
+  // Fungsi Hapus Ucapan
   const handleDeleteWish = async (id: string) => {
     const { error } = await supabase.from("wishes").delete().eq("id", id);
     if (!error) {
       setWishes(wishes.filter((w) => w.id !== id));
       toast({ title: "Ucapan dihapus" });
+    }
+  };
+
+  // Fungsi QR Scanner
+  const handleScanSubmit = () => {
+    if (scanInput.trim()) {
+      let rsvpId = scanInput.trim();
+
+      // Extract ID dari URL jika user paste full URL
+      if (rsvpId.includes("/check-in/")) {
+        const parts = rsvpId.split("/check-in/");
+        rsvpId = parts[parts.length - 1];
+      }
+
+      router.push(`/admin/check-in/${rsvpId}`);
     }
   };
 
@@ -149,7 +166,7 @@ export default function AdminDashboard() {
     r.guest_name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // TAMPILAN LOADING
+  // LOADING STATE
   if (isLoading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50">
@@ -159,7 +176,7 @@ export default function AdminDashboard() {
     );
   }
 
-  // TAMPILAN DASHBOARD UTAMA
+  // MAIN DASHBOARD
   return (
     <div className="min-h-screen bg-gray-50 p-4 md:p-8">
       {/* Header */}
@@ -174,6 +191,42 @@ export default function AdminDashboard() {
           <LogOut className="w-4 h-4" /> Logout
         </Button>
       </div>
+
+      {/* QR SCANNER WIDGET */}
+      <Card className="mb-6 border-2 border-primary/20 shadow-sm">
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2 text-lg">
+            <ScanLine className="w-5 h-5 text-primary" />
+            Quick Check-in Scanner
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div className="flex gap-2">
+            <Input
+              placeholder="Paste QR Code URL atau RSVP ID..."
+              value={scanInput}
+              onChange={(e) => setScanInput(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleScanSubmit()}
+              className="font-mono text-sm"
+            />
+            <Button
+              onClick={handleScanSubmit}
+              size="icon"
+              disabled={!scanInput.trim()}
+            >
+              <Search className="w-4 h-4" />
+            </Button>
+          </div>
+
+          <div className="bg-muted/50 rounded-lg p-3 text-xs text-muted-foreground">
+            <p className="font-semibold mb-1">💡 Tips:</p>
+            <ul className="space-y-1 ml-4 list-disc">
+              <li>Paste full URL dari QR Code atau copy RSVP ID</li>
+              <li>Tekan Enter atau klik tombol cari untuk check-in</li>
+            </ul>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Statistik Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
@@ -389,7 +442,7 @@ export default function AdminDashboard() {
           </Card>
         </TabsContent>
 
-        {/* TAB SEMUA TAMU (Database Mentah) */}
+        {/* TAB SEMUA TAMU */}
         <TabsContent value="guests">
           <Card>
             <CardHeader>

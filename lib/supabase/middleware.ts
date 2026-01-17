@@ -31,15 +31,15 @@ export async function middleware(request: NextRequest) {
     data: { session },
   } = await supabase.auth.getSession()
 
-  // Protect /admin routes KECUALI /admin/login dan /admin/check-in
+  // Protect ALL /admin routes KECUALI /admin/login
   if (
     request.nextUrl.pathname.startsWith("/admin") &&
-    !request.nextUrl.pathname.startsWith("/admin/login") &&
-    !request.nextUrl.pathname.startsWith("/admin/check-in")
+    !request.nextUrl.pathname.startsWith("/admin/login")
   ) {
     if (!session) {
       const url = request.nextUrl.clone()
       url.pathname = "/admin/login"
+      url.searchParams.set("redirect", request.nextUrl.pathname) // Simpan URL tujuan
       return NextResponse.redirect(url)
     }
   }
@@ -61,7 +61,7 @@ export const config = {
      * - _next/static (static files)
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
-     * - public folder
+     * - public folder files
      */
     '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],

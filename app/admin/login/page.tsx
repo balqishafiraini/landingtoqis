@@ -3,7 +3,7 @@
 import type React from "react";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Lock, Mail, Loader2, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,6 +20,9 @@ import { createClient } from "@/lib/supabase/client";
 
 export default function AdminLoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectTo = searchParams.get("redirect") || "/admin"; // Default ke /admin
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -42,7 +45,8 @@ export default function AdminLoginPage() {
         return;
       }
 
-      router.push("/admin");
+      // Redirect ke halaman yang dituju sebelumnya (atau /admin)
+      router.push(redirectTo);
       router.refresh();
     } catch {
       setError("An unexpected error occurred");
@@ -57,7 +61,9 @@ export default function AdminLoginPage() {
         <CardHeader className="text-center">
           <CardTitle className="font-serif text-2xl">Admin Login</CardTitle>
           <CardDescription>
-            Sign in to manage your wedding dashboard
+            {redirectTo.includes("check-in")
+              ? "Login untuk melakukan check-in tamu"
+              : "Sign in to manage your wedding dashboard"}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -66,6 +72,15 @@ export default function AdminLoginPage() {
               <Alert variant="destructive">
                 <AlertCircle className="h-4 w-4" />
                 <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
+
+            {redirectTo.includes("check-in") && (
+              <Alert>
+                <Lock className="h-4 w-4" />
+                <AlertDescription>
+                  Anda harus login sebagai admin untuk melakukan check-in tamu.
+                </AlertDescription>
               </Alert>
             )}
 
