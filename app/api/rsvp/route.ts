@@ -117,7 +117,10 @@ ${eventDetail}
 Jumlah tamu: *${guestCount} orang*
 
 *QR Code Akses Masuk*
-Silakan tunjukkan QR Code ini kepada penerima tamu saat acara berlangsung.
+Klik link di bawah ini untuk melihat tiket QR Code Anda:
+${qrImageUrl}
+
+Harap tunjukkan QR Code tersebut kepada penerima tamu saat kedatangan.
 
 Hormat kami,
 _Balqis & Erlan_`;
