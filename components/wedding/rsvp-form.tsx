@@ -1,7 +1,8 @@
 "use client";
 
 import type React from "react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -14,9 +15,9 @@ import {
 } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Check, Loader2, Users } from "lucide-react";
+import { Check, Loader2, Users, Lock } from "lucide-react";
 import { ScrollReveal } from "./scroll-reveal";
-import Image from "next/image"; // PENTING: Import Image
+import Image from "next/image";
 
 interface RSVPFormProps {
   eventType: "lampung" | "jakarta";
@@ -24,15 +25,28 @@ interface RSVPFormProps {
 }
 
 export function RSVPForm({ eventType, guestId }: RSVPFormProps) {
+  const searchParams = useSearchParams();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
-  const [qrCodeUrl, setQrCodeUrl] = useState<string | null>(null); // State baru untuk QR
+  const [qrCodeUrl, setQrCodeUrl] = useState<string | null>(null);
+  const [guestName, setGuestName] = useState("");
+
   const [formData, setFormData] = useState({
     name: "",
     phone: "",
     attendance: "hadir",
     guestCount: "1",
   });
+
+  // GET GUEST NAME FROM URL PARAMETER
+  useEffect(() => {
+    const toParam = searchParams.get("to");
+    if (toParam) {
+      const decodedName = decodeURIComponent(toParam);
+      setGuestName(decodedName);
+      setFormData((prev) => ({ ...prev, name: decodedName }));
+    }
+  }, [searchParams]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -56,7 +70,6 @@ export function RSVPForm({ eventType, guestId }: RSVPFormProps) {
         throw new Error(result.error || "Gagal mengirim RSVP");
       }
 
-      // AMBIL URL QR DARI RESPONSE BACKEND
       if (result.qrImageUrl) {
         setQrCodeUrl(result.qrImageUrl);
       }
@@ -70,7 +83,7 @@ export function RSVPForm({ eventType, guestId }: RSVPFormProps) {
     }
   };
 
-  // TAMPILAN SETELAH SUKSES
+  // SUCCESS VIEW
   if (isSubmitted) {
     return (
       <ScrollReveal>
@@ -87,7 +100,6 @@ export function RSVPForm({ eventType, guestId }: RSVPFormProps) {
               {qrCodeUrl && " QR Code juga telah dikirim ke WhatsApp Anda."}
             </p>
 
-            {/* TAMPILKAN QR CODE JIKA ADA */}
             {qrCodeUrl && formData.attendance === "hadir" && (
               <div className="bg-white p-4 rounded-xl shadow-sm border border-border mb-4">
                 <p className="text-xs text-muted-foreground mb-2">
@@ -99,7 +111,7 @@ export function RSVPForm({ eventType, guestId }: RSVPFormProps) {
                     alt="QR Code Tamu"
                     fill
                     className="object-contain"
-                    unoptimized // Wajib true karena gambar dari url luar
+                    unoptimized
                   />
                 </div>
               </div>
@@ -114,7 +126,7 @@ export function RSVPForm({ eventType, guestId }: RSVPFormProps) {
     );
   }
 
-  // TAMPILAN FORM (Sama seperti sebelumnya)
+  // FORM VIEW
   return (
     <ScrollReveal>
       <Card className="bg-card border-border max-w-md mx-auto">
@@ -128,17 +140,34 @@ export function RSVPForm({ eventType, guestId }: RSVPFormProps) {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
+            {/* LOCKED NAME FIELD */}
             <div className="space-y-2">
-              <Label htmlFor="name">Nama Lengkap</Label>
+              <Label htmlFor="name" className="flex items-center gap-2">
+                Nama Lengkap
+                {guestName && (
+                  <span className="flex items-center gap-1 text-xs text-amber-600">
+                    <Lock className="w-3 h-3" />
+                    Terkunci
+                  </span>
+                )}
+              </Label>
               <Input
                 id="name"
                 value={formData.name}
                 onChange={(e) =>
+                  !guestName &&
                   setFormData({ ...formData, name: e.target.value })
                 }
-                placeholder="Masukkan nama Anda"
+                placeholder={guestName ? guestName : "Masukkan nama Anda"}
                 required
+                readOnly={!!guestName}
+                className={guestName ? "bg-gray-100 cursor-not-allowed" : ""}
               />
+              {guestName && (
+                <p className="text-xs text-muted-foreground">
+                  📌 Nama terkunci sesuai undangan
+                </p>
+              )}
             </div>
 
             <div className="space-y-2">

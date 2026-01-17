@@ -26,53 +26,144 @@ export async function POST(request: NextRequest) {
        return NextResponse.json({ error: "Nama dan Nomor HP wajib diisi" }, { status: 400 })
     }
 
-    const supabase = await createClient()
-    let finalGuestId = guestId
+   const supabase = await createClient();
 
-    // 1. Buat Guest (Jika belum ada)
-    if (!finalGuestId) {
-      const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, "-") + "-" + Math.floor(Math.random() * 1000)
+    // ========================================
+    // STEP 1: Cari atau Buat Guest di Database
+    // ========================================
+    let finalGuestId = guestId;
+
+    // Cari guest by name (case-insensitive)
+    const { data: existingGuest, error: guestFindError } = await supabase
+      .from("guests")
+      .select("id, phone, has_rsvped")
+      .ilike("name", name.trim())
+      .maybeSingle();
+
+    if (existingGuest) {
+      // Guest sudah ada di database
+      finalGuestId = existingGuest.id;
+
+      // Update phone jika masih kosong DAN update has_rsvped
+      const updateData: any = { 
+        has_rsvped: true,
+        updated_at: new Date().toISOString()
+      };
+      
+      if (!existingGuest.phone || existingGuest.phone === "") {
+        updateData.phone = phone;
+      }
+
+      await supabase
+        .from("guests")
+        .update(updateData)
+        .eq("id", existingGuest.id);
+
+    } else if (!finalGuestId) {
+      // Guest belum ada, buat baru (walk-in guest)
+      const slug =
+        name.toLowerCase().replace(/[^a-z0-9]+/g, "-") +
+        "-" +
+        Math.floor(Math.random() * 1000);
+
       const { data: newGuest, error: guestError } = await supabase
         .from("guests")
         .insert({
-          name: name,
+          name: name.trim(),
           phone: phone,
           event_type: eventType || "both",
           invitation_slug: slug,
+          has_rsvped: true,
         })
         .select("id")
-        .single()
+        .single();
 
       if (guestError) {
-        console.error("Error creating guest:", guestError)
-        return NextResponse.json({ error: "Gagal membuat data tamu" }, { status: 500 })
+        console.error("Error creating guest:", guestError);
+        return NextResponse.json(
+          { error: "Gagal membuat data tamu" },
+          { status: 500 }
+        );
       }
-      finalGuestId = newGuest.id
+
+      finalGuestId = newGuest.id;
     }
 
-    // 2. Generate ID & Link Check-in
-    const rsvpId = randomUUID()
-    const checkInUrl = `${publicDomain}/admin/check-in/${rsvpId}`
-    const isAttending = attendance === "hadir"
-    
-    // 3. Insert RSVP ke Supabase
-    const { error: rsvpError } = await supabase
-      .from("rsvp")
-      .insert({
-        id: rsvpId, 
-        guest_id: finalGuestId,
-        guest_name: name,
-        phone: phone,
-        event_type: eventType,
-        attending: isAttending,
-        guest_count: isAttending ? guestCount : 0,
-        checked_in: false,
-        qr_code: checkInUrl,
-      })
+    // ========================================
+    // STEP 2: Check Existing RSVP (UPSERT Logic)
+    // ========================================
+    const isAttending = attendance === "hadir";
 
-    if (rsvpError) {
-      console.error("Error creating RSVP:", rsvpError)
-      return NextResponse.json({ error: "Gagal menyimpan RSVP: " + rsvpError.message }, { status: 500 })
+    // Cari RSVP yang sudah ada berdasarkan guest_name dan event_type
+    const { data: existingRsvp, error: rsvpFindError } = await supabase
+      .from("rsvp")
+      .select("id, qr_code")
+      .eq("guest_name", name.trim())
+      .eq("event_type", eventType)
+      .maybeSingle();
+
+    let rsvpId: string;
+    let checkInUrl: string;
+    let isUpdate = false;
+
+    if (existingRsvp) {
+      // ========================================
+      // RSVP SUDAH ADA → UPDATE
+      // ========================================
+      isUpdate = true;
+      rsvpId = existingRsvp.id;
+      checkInUrl = existingRsvp.qr_code || `${publicDomain}/admin/check-in/${rsvpId}`;
+
+      const { error: updateError } = await supabase
+        .from("rsvp")
+        .update({
+          guest_id: finalGuestId,
+          phone: phone,
+          attending: isAttending,
+          guest_count: isAttending ? guestCount : 0,
+        })
+        .eq("id", rsvpId);
+
+      if (updateError) {
+        console.error("Error updating RSVP:", updateError);
+        return NextResponse.json(
+          { error: "Gagal update RSVP: " + updateError.message },
+          { status: 500 }
+        );
+      }
+
+      console.log(`✅ RSVP UPDATED for ${name} (${eventType})`);
+
+    } else {
+      // ========================================
+      // RSVP BELUM ADA → INSERT BARU
+      // ========================================
+      rsvpId = randomUUID();
+      checkInUrl = `${publicDomain}/admin/check-in/${rsvpId}`;
+
+      const { error: insertError } = await supabase
+        .from("rsvp")
+        .insert({
+          id: rsvpId,
+          guest_id: finalGuestId,
+          guest_name: name.trim(),
+          phone: phone,
+          event_type: eventType,
+          attending: isAttending,
+          guest_count: isAttending ? guestCount : 0,
+          checked_in: false,
+          qr_code: checkInUrl,
+        });
+
+      if (insertError) {
+        console.error("Error creating RSVP:", insertError);
+        return NextResponse.json(
+          { error: "Gagal menyimpan RSVP: " + insertError.message },
+          { status: 500 }
+        );
+      }
+
+      console.log(`✅ NEW RSVP CREATED for ${name} (${eventType})`);
     }
 
     // 4. Generate QR Code URL

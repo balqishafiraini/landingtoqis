@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Table,
   TableBody,
@@ -15,6 +16,21 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Users,
   MessageSquare,
   CheckCircle2,
@@ -22,20 +38,27 @@ import {
   LogOut,
   Loader2,
   Trash2,
-  QrCode,
+  UserPlus,
+  Copy,
+  Check,
+  Camera,
   ScanLine,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/components/ui/use-toast";
 
-// Definisikan tipe data
+// Import QR Scanner Component
+import { QRScanner } from "@/components/wedding/qr-scanner";
+
 type Guest = {
   id: string;
   name: string;
   phone: string;
+  email?: string;
   event_type: string;
   invitation_slug: string;
+  created_at: string;
 };
 
 type Rsvp = {
@@ -55,13 +78,6 @@ type Wish = {
   created_at: string;
 };
 
-type WishlistItem = {
-  id: string;
-  name: string;
-  is_claimed: boolean;
-  claimed_by: string | null;
-};
-
 export default function AdminDashboard() {
   const router = useRouter();
   const { toast } = useToast();
@@ -71,65 +87,171 @@ export default function AdminDashboard() {
   const [guests, setGuests] = useState<Guest[]>([]);
   const [rsvps, setRsvps] = useState<Rsvp[]>([]);
   const [wishes, setWishes] = useState<Wish[]>([]);
-  const [wishlist, setWishlist] = useState<WishlistItem[]>([]);
 
   // STATE LOADING & SEARCH
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
 
-  // STATE QR SCANNER
-  const [scanInput, setScanInput] = useState("");
+  // STATE MODAL & SCANNER
+  const [showAddGuestModal, setShowAddGuestModal] = useState(false);
+  const [showScanner, setShowScanner] = useState(false);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+
+  // STATE FORM ADD GUEST
+  const [newGuest, setNewGuest] = useState({
+    name: "",
+    phone: "",
+    email: "",
+    eventType: "wedding" as string,
+  });
 
   // FETCH DATA
   useEffect(() => {
-    const fetchData = async () => {
-      setIsLoading(true);
-      try {
-        const [resGuests, resRsvp, resWishes, resWishlist] = await Promise.all([
-          supabase
-            .from("guests")
-            .select("*")
-            .order("created_at", { ascending: false }),
-          supabase
-            .from("rsvp")
-            .select("*")
-            .order("created_at", { ascending: false }),
-          supabase
-            .from("wishes")
-            .select("*")
-            .order("created_at", { ascending: false }),
-          supabase
-            .from("wishlist")
-            .select("*")
-            .order("created_at", { ascending: false }),
-        ]);
-
-        if (resGuests.data) setGuests(resGuests.data);
-        if (resRsvp.data) setRsvps(resRsvp.data);
-        if (resWishes.data) setWishes(resWishes.data);
-        if (resWishlist.data) setWishlist(resWishlist.data);
-      } catch (error) {
-        console.error("Error fetching data:", error);
-        toast({
-          title: "Gagal memuat data",
-          description: "Periksa koneksi internet Anda.",
-          variant: "destructive",
-        });
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
     fetchData();
   }, []);
 
-  // Fungsi Logout
+  const fetchData = async () => {
+    setIsLoading(true);
+    try {
+      const [resGuests, resRsvp, resWishes] = await Promise.all([
+        supabase
+          .from("guests")
+          .select("*")
+          .order("created_at", { ascending: false }),
+        supabase
+          .from("rsvp")
+          .select("*")
+          .order("created_at", { ascending: false }),
+        supabase
+          .from("wishes")
+          .select("*")
+          .order("created_at", { ascending: false }),
+      ]);
+
+      if (resGuests.data) setGuests(resGuests.data);
+      if (resRsvp.data) setRsvps(resRsvp.data);
+      if (resWishes.data) setWishes(resWishes.data);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+      toast({
+        title: "Gagal memuat data",
+        description: "Periksa koneksi internet Anda.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // GENERATE SLUG FROM NAME
+  const generateSlug = (name: string) => {
+    return name
+      .toLowerCase()
+      .replace(/\s+/g, "-")
+      .replace(/[^\w\-]+/g, "")
+      .replace(/\-\-+/g, "-")
+      .trim();
+  };
+
+  // GENERATE INVITATION LINK
+  const generateInvitationLink = (name: string, eventType: string) => {
+    const encodedName = encodeURIComponent(name);
+    const baseUrl = window.location.origin;
+    return `${baseUrl}/${eventType}?to=${encodedName}`;
+  };
+
+  // HANDLE ADD GUEST
+  const handleAddGuest = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!newGuest.name.trim()) {
+      toast({
+        title: "Error",
+        description: "Nama guest harus diisi!",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const slug = generateSlug(newGuest.name);
+
+      const { data, error } = await supabase
+        .from("guests")
+        .insert([
+          {
+            name: newGuest.name,
+            phone: newGuest.phone || null,
+            email: newGuest.email || null,
+            event_type: newGuest.eventType,
+            invitation_slug: slug,
+          },
+        ])
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      toast({
+        title: "Berhasil!",
+        description: `Guest ${newGuest.name} berhasil ditambahkan!`,
+      });
+
+      setNewGuest({ name: "", phone: "", email: "", eventType: "wedding" });
+      setShowAddGuestModal(false);
+      fetchData();
+    } catch (error: any) {
+      console.error("Error adding guest:", error);
+      toast({
+        title: "Gagal menambahkan guest",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
+  // HANDLE DELETE GUEST
+  const handleDeleteGuest = async (id: string, name: string) => {
+    if (!confirm(`Hapus guest "${name}"?`)) return;
+
+    try {
+      const { error } = await supabase.from("guests").delete().eq("id", id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Guest dihapus",
+        description: `${name} telah dihapus dari database.`,
+      });
+
+      fetchData();
+    } catch (error: any) {
+      toast({
+        title: "Gagal menghapus guest",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
+  // HANDLE COPY LINK
+  const handleCopyLink = (link: string, id: string) => {
+    navigator.clipboard.writeText(link);
+    setCopiedId(id);
+    toast({
+      title: "Link disalin!",
+      description: "Link undangan berhasil disalin ke clipboard.",
+    });
+    setTimeout(() => setCopiedId(null), 2000);
+  };
+
+  // HANDLE LOGOUT
   const handleLogout = async () => {
     await supabase.auth.signOut();
     router.push("/admin/login");
   };
 
-  // Fungsi Hapus Ucapan
+  // HANDLE DELETE WISH
   const handleDeleteWish = async (id: string) => {
     const { error } = await supabase.from("wishes").delete().eq("id", id);
     if (!error) {
@@ -138,32 +260,35 @@ export default function AdminDashboard() {
     }
   };
 
-  // Fungsi QR Scanner
-  const handleScanSubmit = () => {
-    if (scanInput.trim()) {
-      let rsvpId = scanInput.trim();
+  // HANDLE QR SCAN
+  const handleQRScan = (decodedText: string) => {
+    // Extract RSVP ID from QR code
+    let rsvpId = decodedText.trim();
 
-      // Extract ID dari URL jika user paste full URL
-      if (rsvpId.includes("/check-in/")) {
-        const parts = rsvpId.split("/check-in/");
-        rsvpId = parts[parts.length - 1];
-      }
-
-      router.push(`/admin/check-in/${rsvpId}`);
+    if (rsvpId.includes("/check-in/")) {
+      const parts = rsvpId.split("/check-in/");
+      rsvpId = parts[parts.length - 1];
     }
+
+    setShowScanner(false);
+    router.push(`/admin/check-in/${rsvpId}`);
   };
 
-  // Hitung Statistik
+  // STATS
   const totalGuests = rsvps.reduce(
     (acc, curr) => acc + (curr.attending ? curr.guest_count : 0),
-    0
+    0,
   );
   const confirmedGuests = rsvps.filter((r) => r.attending).length;
   const checkedInGuests = rsvps.filter((r) => r.checked_in).length;
 
-  // Filter Search
+  // FILTER SEARCH
   const filteredRsvps = rsvps.filter((r) =>
-    r.guest_name.toLowerCase().includes(searchTerm.toLowerCase())
+    r.guest_name.toLowerCase().includes(searchTerm.toLowerCase()),
+  );
+
+  const filteredGuests = guests.filter((g) =>
+    g.name.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
   // LOADING STATE
@@ -171,12 +296,11 @@ export default function AdminDashboard() {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50">
         <Loader2 className="w-12 h-12 animate-spin text-primary mb-4" />
-        <p className="text-gray-500">Memuat Data Pernikahan...</p>
+        <p className="text-gray-500">Memuat Data...</p>
       </div>
     );
   }
 
-  // MAIN DASHBOARD
   return (
     <div className="min-h-screen bg-gray-50 p-4 md:p-8">
       {/* Header */}
@@ -185,55 +309,45 @@ export default function AdminDashboard() {
           <h1 className="text-3xl font-bold font-serif text-gray-900">
             Admin Dashboard
           </h1>
-          <p className="text-gray-500">Overview Pernikahan Balqis & Erlan</p>
+          <p className="text-gray-500">Guest Management & Event Overview</p>
         </div>
-        <Button variant="outline" onClick={handleLogout} className="flex gap-2">
-          <LogOut className="w-4 h-4" /> Logout
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            onClick={() => setShowScanner(true)}
+            className="flex gap-2"
+          >
+            <Camera className="w-4 h-4" /> Scanner
+          </Button>
+          <Button
+            variant="outline"
+            onClick={handleLogout}
+            className="flex gap-2"
+          >
+            <LogOut className="w-4 h-4" /> Logout
+          </Button>
+        </div>
       </div>
 
-      {/* QR SCANNER WIDGET */}
-      <Card className="mb-6 border-2 border-primary/20 shadow-sm">
-        <CardHeader className="pb-3">
-          <CardTitle className="flex items-center gap-2 text-lg">
-            <ScanLine className="w-5 h-5 text-primary" />
-            Quick Check-in Scanner
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <div className="flex gap-2">
-            <Input
-              placeholder="Paste QR Code URL atau RSVP ID..."
-              value={scanInput}
-              onChange={(e) => setScanInput(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleScanSubmit()}
-              className="font-mono text-sm"
-            />
-            <Button
-              onClick={handleScanSubmit}
-              size="icon"
-              disabled={!scanInput.trim()}
-            >
-              <Search className="w-4 h-4" />
-            </Button>
-          </div>
-
-          <div className="bg-muted/50 rounded-lg p-3 text-xs text-muted-foreground">
-            <p className="font-semibold mb-1">💡 Tips:</p>
-            <ul className="space-y-1 ml-4 list-disc">
-              <li>Paste full URL dari QR Code atau copy RSVP ID</li>
-              <li>Tekan Enter atau klik tombol cari untuk check-in</li>
-            </ul>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Statistik Cards */}
+      {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-gray-500">
-              Total Tamu (Pax)
+              Total Guests
+            </CardTitle>
+            <Users className="w-4 h-4 text-primary" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{guests.length}</div>
+            <p className="text-xs text-gray-500">Database tamu</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium text-gray-500">
+              Total Pax
             </CardTitle>
             <Users className="w-4 h-4 text-primary" />
           </CardHeader>
@@ -242,10 +356,11 @@ export default function AdminDashboard() {
             <p className="text-xs text-gray-500">Orang akan hadir</p>
           </CardContent>
         </Card>
+
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-gray-500">
-              RSVP Masuk
+              RSVP Confirmed
             </CardTitle>
             <CheckCircle2 className="w-4 h-4 text-green-500" />
           </CardHeader>
@@ -254,55 +369,137 @@ export default function AdminDashboard() {
             <p className="text-xs text-gray-500">Konfirmasi kehadiran</p>
           </CardContent>
         </Card>
+
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-gray-500">
               Check-In
             </CardTitle>
-            <Users className="w-4 h-4 text-blue-500" />
+            <CheckCircle2 className="w-4 h-4 text-blue-500" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{checkedInGuests}</div>
             <p className="text-xs text-gray-500">Tamu sudah datang</p>
           </CardContent>
         </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-gray-500">
-              Ucapan
-            </CardTitle>
-            <MessageSquare className="w-4 h-4 text-purple-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{wishes.length}</div>
-            <p className="text-xs text-gray-500">Pesan & Doa</p>
-          </CardContent>
-        </Card>
       </div>
 
-      {/* Tabs Menu */}
-      <Tabs defaultValue="rsvp" className="space-y-4">
+      {/* Tabs */}
+      <Tabs defaultValue="guests" className="space-y-4">
         <TabsList>
-          <TabsTrigger value="rsvp">Daftar Hadir (RSVP)</TabsTrigger>
+          <TabsTrigger value="guests">Guest List</TabsTrigger>
+          <TabsTrigger value="rsvp">RSVP</TabsTrigger>
           <TabsTrigger value="wishes">Ucapan</TabsTrigger>
-          <TabsTrigger value="wishlist">Hadiah</TabsTrigger>
-          <TabsTrigger value="guests">Semua Tamu</TabsTrigger>
         </TabsList>
 
-        {/* TAB RSVP */}
-        <TabsContent value="rsvp">
+        {/* TAB GUESTS */}
+        <TabsContent value="guests">
           <Card>
             <CardHeader>
               <div className="flex justify-between items-center">
-                <CardTitle>Data Kehadiran</CardTitle>
-                <div className="relative w-64">
-                  <Search className="absolute left-2 top-2.5 h-4 w-4 text-gray-500" />
-                  <Input
-                    placeholder="Cari nama tamu..."
-                    className="pl-8"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                  />
+                <CardTitle>Guest Database</CardTitle>
+                <div className="flex gap-2">
+                  <div className="relative w-64">
+                    <Search className="absolute left-2 top-2.5 h-4 w-4 text-gray-500" />
+                    <Input
+                      placeholder="Cari nama guest..."
+                      className="pl-8"
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                  </div>
+                  <Dialog
+                    open={showAddGuestModal}
+                    onOpenChange={setShowAddGuestModal}
+                  >
+                    <DialogTrigger asChild>
+                      <Button className="flex gap-2">
+                        <UserPlus className="w-4 h-4" /> Add Guest
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Add New Guest</DialogTitle>
+                        <DialogDescription>
+                          Tambahkan guest baru dan generate link undangan
+                          otomatis
+                        </DialogDescription>
+                      </DialogHeader>
+                      <form onSubmit={handleAddGuest} className="space-y-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="name">Nama Guest *</Label>
+                          <Input
+                            id="name"
+                            value={newGuest.name}
+                            onChange={(e) =>
+                              setNewGuest({ ...newGuest, name: e.target.value })
+                            }
+                            placeholder="e.g., Balqis Cantik"
+                            required
+                          />
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="phone">No. WhatsApp</Label>
+                          <Input
+                            id="phone"
+                            value={newGuest.phone}
+                            onChange={(e) =>
+                              setNewGuest({
+                                ...newGuest,
+                                phone: e.target.value,
+                              })
+                            }
+                            placeholder="08123456789"
+                          />
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="eventType">Event Type *</Label>
+                          <Select
+                            value={newGuest.eventType}
+                            onValueChange={(value) =>
+                              setNewGuest({ ...newGuest, eventType: value })
+                            }
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Pilih event type" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="lampung">
+                                Lampung Akad
+                              </SelectItem>
+                              <SelectItem value="jakarta">
+                                Jakarta Resepsi
+                              </SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        <div className="flex gap-2">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => {
+                              setShowAddGuestModal(false);
+                              setNewGuest({
+                                name: "",
+                                phone: "",
+                                email: "",
+                                eventType: "wedding",
+                              });
+                            }}
+                            className="flex-1"
+                          >
+                            Cancel
+                          </Button>
+                          <Button type="submit" className="flex-1">
+                            Add Guest
+                          </Button>
+                        </div>
+                      </form>
+                    </DialogContent>
+                  </Dialog>
                 </div>
               </div>
             </CardHeader>
@@ -310,8 +507,95 @@ export default function AdminDashboard() {
               <Table>
                 <TableHeader>
                   <TableRow>
+                    <TableHead>No</TableHead>
+                    <TableHead>Nama Guest</TableHead>
+                    <TableHead>Event Type</TableHead>
+                    <TableHead>Link Undangan</TableHead>
+                    <TableHead>Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredGuests.map((guest, index) => {
+                    const invitationLink = generateInvitationLink(
+                      guest.name,
+                      guest.event_type,
+                    );
+                    return (
+                      <TableRow key={guest.id}>
+                        <TableCell>{index + 1}</TableCell>
+                        <TableCell className="font-medium">
+                          {guest.name}
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="outline" className="capitalize">
+                            {guest.event_type}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <code className="text-xs bg-gray-100 px-2 py-1 rounded truncate max-w-xs">
+                              {invitationLink}
+                            </code>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() =>
+                                handleCopyLink(invitationLink, guest.id)
+                              }
+                              className="flex-shrink-0"
+                            >
+                              {copiedId === guest.id ? (
+                                <Check className="w-4 h-4 text-green-600" />
+                              ) : (
+                                <Copy className="w-4 h-4" />
+                              )}
+                            </Button>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() =>
+                              handleDeleteGuest(guest.id, guest.name)
+                            }
+                          >
+                            <Trash2 className="w-4 h-4 text-red-500" />
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                  {filteredGuests.length === 0 && (
+                    <TableRow>
+                      <TableCell
+                        colSpan={5}
+                        className="text-center py-8 text-gray-500"
+                      >
+                        {searchTerm
+                          ? "Guest tidak ditemukan"
+                          : "Belum ada guest. Tambahkan guest pertama!"}
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* TAB RSVP */}
+        <TabsContent value="rsvp">
+          <Card>
+            <CardHeader>
+              <CardTitle>Data Kehadiran (RSVP)</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
                     <TableHead>Nama Tamu</TableHead>
-                    <TableHead>Acara</TableHead>
+                    <TableHead>Event</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Jumlah</TableHead>
                     <TableHead>Check-In</TableHead>
@@ -355,7 +639,7 @@ export default function AdminDashboard() {
                         colSpan={5}
                         className="text-center py-8 text-gray-500"
                       >
-                        Tidak ada data ditemukan
+                        Belum ada RSVP
                       </TableCell>
                     </TableRow>
                   )}
@@ -400,79 +684,24 @@ export default function AdminDashboard() {
                     </Button>
                   </div>
                 ))}
+                {wishes.length === 0 && (
+                  <p className="text-center py-8 text-gray-500">
+                    Belum ada ucapan
+                  </p>
+                )}
               </div>
             </CardContent>
           </Card>
         </TabsContent>
-
-        {/* TAB HADIAH */}
-        <TabsContent value="wishlist">
-          <Card>
-            <CardHeader>
-              <CardTitle>Status Kado Digital</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Nama Barang</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Pemberi</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {wishlist.map((item) => (
-                    <TableRow key={item.id}>
-                      <TableCell>{item.name}</TableCell>
-                      <TableCell>
-                        {item.is_claimed ? (
-                          <Badge className="bg-purple-100 text-purple-800">
-                            Terambil
-                          </Badge>
-                        ) : (
-                          <Badge variant="outline">Tersedia</Badge>
-                        )}
-                      </TableCell>
-                      <TableCell>{item.claimed_by || "-"}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* TAB SEMUA TAMU */}
-        <TabsContent value="guests">
-          <Card>
-            <CardHeader>
-              <CardTitle>Database Tamu (Raw)</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Nama</TableHead>
-                    <TableHead>No. HP</TableHead>
-                    <TableHead>Slug Undangan</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {guests.map((g) => (
-                    <TableRow key={g.id}>
-                      <TableCell>{g.name}</TableCell>
-                      <TableCell>{g.phone}</TableCell>
-                      <TableCell className="text-xs font-mono text-gray-500">
-                        {g.invitation_slug}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-        </TabsContent>
       </Tabs>
+
+      {/* QR Scanner Modal */}
+      {showScanner && (
+        <QRScanner
+          onScan={handleQRScan}
+          onClose={() => setShowScanner(false)}
+        />
+      )}
     </div>
   );
 }
