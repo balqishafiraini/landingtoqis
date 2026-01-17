@@ -7,6 +7,8 @@ function formatPhoneNumber(phone: string) {
   let formatted = phone.replace(/\D/g, "")
   if (formatted.startsWith("0")) {
     formatted = "62" + formatted.slice(1)
+  } else if (!formatted.startsWith("62")) {
+    formatted = "62" + formatted
   }
   return formatted
 }
@@ -18,7 +20,7 @@ export async function POST(request: NextRequest) {
     
     // Konfigurasi
     const publicDomain = "https://www.landingtoqis.com" 
-    const fonnteToken = "TbTg6qzmiVDg5aCXSvuq" // Pastikan token ini aktif
+    const fonnteToken = "TbTg6qzmiVDg5aCXSvuq"
 
     if (!name || !phone) {
        return NextResponse.json({ error: "Nama dan Nomor HP wajib diisi" }, { status: 400 })
@@ -42,6 +44,7 @@ export async function POST(request: NextRequest) {
         .single()
 
       if (guestError) {
+        console.error("Error creating guest:", guestError)
         return NextResponse.json({ error: "Gagal membuat data tamu" }, { status: 500 })
       }
       finalGuestId = newGuest.id
@@ -68,56 +71,92 @@ export async function POST(request: NextRequest) {
       })
 
     if (rsvpError) {
+      console.error("Error creating RSVP:", rsvpError)
       return NextResponse.json({ error: "Gagal menyimpan RSVP: " + rsvpError.message }, { status: 500 })
     }
 
-    // Link QR Code Generator
-    const qrImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&format=png&data=${encodeURIComponent(checkInUrl)}`
+    // 4. Generate QR Code URL
+    const qrImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&format=png&data=${encodeURIComponent(checkInUrl)}`
 
-    // 4. KIRIM WA (Hanya jika hadir)
+    // 5. KIRIM WA (Hanya jika hadir)
     if (isAttending) {
-      console.log("Mulai proses kirim WA ke:", phone)
+      console.log("📱 Mulai proses kirim WA ke:", formatPhoneNumber(phone))
 
       try {
-        // [UPDATE PENTING] Fetch gambar dulu di server (bukan di Fonnte)
-        // Ini memastikan gambar benar-benar ada fisiknya sebelum dikirim
-        const imageRes = await fetch(qrImageUrl)
+        // Download gambar QR dari API
+        const imageResponse = await fetch(qrImageUrl)
         
-        if (!imageRes.ok) throw new Error("Gagal download gambar QR")
+        if (!imageResponse.ok) {
+          throw new Error(`Gagal download QR: ${imageResponse.status}`)
+        }
         
-        const imageBuffer = await imageRes.arrayBuffer()
-        const imageBlob = new Blob([imageBuffer], { type: 'image/png' })
+        // Convert ke base64
+        const imageBuffer = await imageResponse.arrayBuffer()
+        const base64Image = Buffer.from(imageBuffer).toString('base64')
+        const base64DataUrl = `data:image/png;base64,${base64Image}`
 
-        const message = `Halo ${name},\n\nTerima kasih telah melakukan konfirmasi kehadiran.\n\nBerikut adalah QR Code akses masuk Anda.\nHarap tunjukkan QR Code ini kepada penerima tamu saat acara.\n\nSampai jumpa!`
+        // Pesan WA
+        const message = `Halo *${name}*,
 
-        const formData = new FormData()
-        formData.append("target", formatPhoneNumber(phone))
-        formData.append("message", message)
-        
-        // Kirim sebagai FILE fisik, bukan URL
-        formData.append("file", imageBlob, "qrcode.png") 
-        formData.append("countryCode", "62")
+Terima kasih telah melakukan konfirmasi kehadiran untuk acara pernikahan kami! 🎉
 
-        // Kirim ke Fonnte
-        const waReq = await fetch("https://api.fonnte.com/send", {
+*Berikut adalah QR Code akses masuk Anda:*
+Harap tunjukkan QR Code ini kepada penerima tamu saat acara berlangsung.
+
+Jumlah tamu: *${guestCount} orang*
+Acara: *${eventType === 'akad' ? 'Akad Nikah' : eventType === 'resepsi' ? 'Resepsi' : 'Akad & Resepsi'}*
+
+Sampai jumpa di hari bahagia kami! 💕
+
+_Balqis & Erlan_`
+
+        // Kirim via Fonnte (FORMAT JSON)
+        const fonntePayload = {
+          target: formatPhoneNumber(phone),
+          message: message,
+          file: base64DataUrl, // ← BASE64 STRING
+          filename: "qr-code.png",
+          countryCode: "62"
+        }
+
+        console.log("🚀 Sending to Fonnte with target:", fonntePayload.target)
+
+        const fonnteResponse = await fetch("https://api.fonnte.com/send", {
           method: "POST",
-          headers: { Authorization: fonnteToken },
-          body: formData,
+          headers: { 
+            "Authorization": fonnteToken,
+            "Content-Type": "application/json" // ← PENTING!
+          },
+          body: JSON.stringify(fonntePayload)
         })
         
-        const waRes = await waReq.json()
-        console.log("Status WA Fonnte:", waRes)
+        const fonnteResult = await fonnteResponse.json()
+        
+        if (fonnteResult.status) {
+          console.log("✅ WA berhasil dikirim:", fonnteResult)
+        } else {
+          console.error("❌ Fonnte error:", fonnteResult)
+        }
 
-      } catch (e) {
-        console.error("Gagal kirim WA (Error di blok try/catch):", e)
-        // Kita tidak return error di sini agar user tetap dapat success response (karena RSVP database sudah masuk)
+      } catch (waError: any) {
+        console.error("❌ Error saat kirim WA:", waError.message)
+        // Jangan return error, biar RSVP tetap sukses
       }
+    } else {
+      console.log("ℹ️ Tamu tidak hadir, skip kirim WA")
     }
 
-    return NextResponse.json({ success: true, qrImageUrl })
+    // 6. Return success dengan QR URL
+    return NextResponse.json({ 
+      success: true, 
+      qrImageUrl,
+      message: isAttending ? "RSVP berhasil! QR Code telah dikirim ke WhatsApp." : "RSVP berhasil!"
+    })
     
   } catch (error: any) {
-    console.error("RSVP API error:", error)
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+    console.error("💥 RSVP API error:", error)
+    return NextResponse.json({ 
+      error: error.message || "Internal server error" 
+    }, { status: 500 })
   }
 }
