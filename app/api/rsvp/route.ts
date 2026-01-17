@@ -1,8 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
-import { randomUUID } from "crypto"
 
-// Helper format nomor HP
+// Helper format nomor HP ke 62
 function formatPhoneNumber(phone: string) {
   let formatted = phone.replace(/\D/g, "")
   if (formatted.startsWith("0")) {
@@ -16,7 +15,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { name, phone, attendance, guestCount, eventType, guestId } = body
     
-    // Pastikan ini URL production yang benar
+    // [UPDATE] Pastikan domain menggunakan https://www.landingtoqis.com (sesuai link yg kamu kasih)
     const publicDomain = "https://www.landingtoqis.com" 
 
     if (!name || !phone) {
@@ -46,36 +45,42 @@ export async function POST(request: NextRequest) {
       finalGuestId = newGuest.id
     }
 
-    // 2. Generate ID & Link Check-in
-    const rsvpId = randomUUID()
-    const checkInUrl = `${publicDomain}/admin/check-in/${rsvpId}`
+    // 2. Simpan RSVP
     const isAttending = attendance === "hadir"
     
-    // 3. Insert RSVP Langsung (Data Link QR masuk sini)
-    const { error: rsvpError } = await supabase
+    const { data: rsvpData, error: rsvpError } = await supabase
       .from("rsvp")
       .insert({
-        id: rsvpId, 
         guest_id: finalGuestId,
         guest_name: name,
         phone: phone,
         event_type: eventType,
         attending: isAttending,
         guest_count: isAttending ? guestCount : 0,
-        checked_in: false,
-        qr_code: checkInUrl
+        checked_in: false 
       })
+      .select("id")
+      .single()
 
     if (rsvpError) {
       return NextResponse.json({ error: "Gagal menyimpan RSVP: " + rsvpError.message }, { status: 500 })
     }
 
-    // [FIX WA PHOTO] Gunakan QRServer dengan format png eksplisit
-    const qrImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&format=png&data=${encodeURIComponent(checkInUrl)}`
+    // 3. Generate Link Check-in
+    const checkInUrl = `${publicDomain}/admin/check-in/${rsvpData.id}`
+    
+    // Update DB dengan link QR
+    await supabase
+      .from("rsvp")
+      .update({ qr_code: checkInUrl })
+      .eq("id", rsvpData.id)
 
-    // 4. KIRIM WA
+    // [GANTI PROVIDER] Gunakan QuickChart (lebih stabil untuk Fonnte)
+    const qrImageUrl = `https://quickchart.io/qr?text=${encodeURIComponent(checkInUrl)}&size=300&margin=1&dark=000000&light=ffffff`
+
+    // 4. KIRIM WA (Penting: Await & Filename)
     if (isAttending) {
-      const fonnteToken = "TbTg6qzmiVDg5aCXSvuq" // Pastikan Token Benar
+      const fonnteToken = "TbTg6qzmiVDg5aCXSvuq" // Token Kamu
       
       const message = `Halo ${name},\n\nTerima kasih telah melakukan konfirmasi kehadiran.\n\nBerikut adalah QR Code akses masuk Anda.\nHarap tunjukkan QR Code ini kepada penerima tamu saat acara.\n\nSampai jumpa!`
 
@@ -83,21 +88,22 @@ export async function POST(request: NextRequest) {
       formData.append("target", formatPhoneNumber(phone))
       formData.append("message", message)
       formData.append("url", qrImageUrl) 
-      formData.append("filename", "qrcode.png") // Nama file
+      formData.append("filename", "qr-code.png") // Wajib untuk gambar
       formData.append("countryCode", "62")
 
       try {
-        // Gunakan Await agar server menunggu kirim selesai
-        await fetch("https://api.fonnte.com/send", {
+        const res = await fetch("https://api.fonnte.com/send", {
           method: "POST",
           headers: { Authorization: fonnteToken },
           body: formData,
         })
+        console.log("Fonnte Status:", await res.text())
       } catch (e) {
         console.error("Gagal kirim WA:", e)
       }
     }
 
+    // Kembalikan URL QR ke frontend
     return NextResponse.json({ success: true, qrImageUrl })
     
   } catch (error: any) {
