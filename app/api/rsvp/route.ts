@@ -92,7 +92,7 @@ export async function POST(request: NextRequest) {
 Tanggal: 23 Mei 2026
 Waktu: 
 08.00 - 10.00 WIB (Akad)
-10.00 - 14.00 (Resepsi)
+10.00 - 14.00 (Walimatul Ursy)
 Tempat: Kediaman Bapak Lili Zainal
 Jl. Romowijoyo No. 56, Sawah Lama, Tanjung Karang Timur, Bandar Lampung
 Maps: https://maps.app.goo.gl/Hp6SbNi72Lm6wAXPA`
