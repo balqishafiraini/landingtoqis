@@ -50,7 +50,6 @@ export async function POST(request: NextRequest) {
       finalGuestId = newGuest.id
     }
 
-    // 2. Generate ID & Link Check-in
     const rsvpId = randomUUID()
     const checkInUrl = `${publicDomain}/admin/check-in/${rsvpId}`
     const isAttending = attendance === "hadir"
@@ -67,7 +66,7 @@ export async function POST(request: NextRequest) {
         attending: isAttending,
         guest_count: isAttending ? guestCount : 0,
         checked_in: false,
-        qr_code: checkInUrl
+        qr_code: checkInUrl,
       })
 
     if (rsvpError) {
@@ -96,25 +95,42 @@ export async function POST(request: NextRequest) {
         const base64DataUrl = `data:image/png;base64,${base64Image}`
 
         // Pesan WA
-        const message = `Halo *${name}*,
+        const eventDetail =
+  eventType === "lampung"
+    ? `*Akad Nikah & Walimatul Ursy*
+Bertempat di Kediaman Bapak Lili Zainal
+Jl. Romowijoyo No. 56, Sawah Lama
+Tanjung Karang Timur, Bandar Lampung
+Maps: https://maps.app.goo.gl/Hp6SbNi72Lm6wAXPA`
+    : eventType === "jakarta"
+    ? `*Reception – Outdoor Garden Party (Evening)*
+Villa Srimanganti
+Jl. Raya PKP No.34 2, RT.2/RW.8
+Klp. Dua Wetan, Kec. Ciracas
+Jakarta Timur, DKI Jakarta
+Maps: https://maps.app.goo.gl/nWQiJHJrwhafYwf89`
+    : `*Akad Nikah & Resepsi*`;
 
-Terima kasih telah melakukan konfirmasi kehadiran untuk acara pernikahan kami! 🎉
+const message = `Halo *${name}*,
 
-*Berikut adalah QR Code akses masuk Anda:*
-Harap tunjukkan QR Code ini kepada penerima tamu saat acara berlangsung.
+Terima kasih telah melakukan konfirmasi kehadiran pada acara pernikahan kami.
+
+${eventDetail}
 
 Jumlah tamu: *${guestCount} orang*
-Acara: *${eventType === 'akad' ? 'Akad Nikah' : eventType === 'resepsi' ? 'Resepsi' : 'Akad & Resepsi'}*
 
-Sampai jumpa di hari bahagia kami! 💕
+*QR Code Akses Masuk*
+Silakan tunjukkan QR Code ini kepada penerima tamu saat acara berlangsung.
 
-_Balqis & Erlan_`
+Hormat kami,
+_Balqis & Erlan_`;
+
 
         // Kirim via Fonnte (FORMAT JSON)
         const fonntePayload = {
           target: formatPhoneNumber(phone),
           message: message,
-          file: base64DataUrl, // ← BASE64 STRING
+          file: base64DataUrl,
           filename: "qr-code.png",
           countryCode: "62"
         }
@@ -125,7 +141,7 @@ _Balqis & Erlan_`
           method: "POST",
           headers: { 
             "Authorization": fonnteToken,
-            "Content-Type": "application/json" // ← PENTING!
+            "Content-Type": "application/json"
           },
           body: JSON.stringify(fonntePayload)
         })
