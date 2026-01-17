@@ -112,15 +112,15 @@ Maps: https://maps.app.goo.gl/nWQiJHJrwhafYwf89`
 
 Terima kasih telah melakukan konfirmasi kehadiran pada acara pernikahan kami.
 
-${eventDetail}
-
-Jumlah tamu: *${guestCount} orang*
-
 *QR Code Akses Masuk*
 Klik link di bawah ini untuk melihat tiket QR Code Anda:
 ${qrImageUrl}
 
 Harap tunjukkan QR Code tersebut kepada penerima tamu saat kedatangan.
+
+${eventDetail}
+
+Jumlah tamu: *${guestCount} orang*
 
 Hormat kami,
 _Balqis & Erlan_`;
