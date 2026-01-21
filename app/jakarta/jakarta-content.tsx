@@ -1,47 +1,65 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { useSearchParams } from "next/navigation"
-import Image from "next/image"
-import Link from "next/link"
-import { motion, useScroll, useTransform } from "framer-motion"
-import { Calendar, Clock, MapPin, Navigation, Sparkles, Heart, Camera, Gift, PartyPopper, QrCode, Film } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { InvitationEnvelope } from "@/components/wedding/invitation-envelope"
-import { MusicPlayer } from "@/components/wedding/music-player"
-import { CountdownTimer } from "@/components/wedding/countdown-timer"
-import { ScrollReveal } from "@/components/wedding/scroll-reveal"
-import { RSVPForm } from "@/components/wedding/rsvp-form"
-import { WishesSection } from "@/components/wedding/wishes-section"
-import { WEDDING_DATA } from "@/lib/wedding-data"
+import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
+import Image from "next/image";
+import Link from "next/link";
+import { motion, useScroll, useTransform } from "framer-motion";
+import {
+  Calendar,
+  Clock,
+  MapPin,
+  Navigation,
+  Sparkles,
+  Heart,
+  Camera,
+  Gift,
+  PartyPopper,
+  QrCode,
+  Film,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { InvitationEnvelope } from "@/components/wedding/invitation-envelope";
+import { MusicPlayer } from "@/components/wedding/music-player";
+import { CountdownTimer } from "@/components/wedding/countdown-timer";
+import { ScrollReveal } from "@/components/wedding/scroll-reveal";
+import { RSVPForm } from "@/components/wedding/rsvp-form";
+import { WishesSection } from "@/components/wedding/wishes-section";
+import { WEDDING_DATA } from "@/lib/wedding-data";
 
-const QRIS_IMAGE_URL = "/qris-wedding.jpg"
+const QRIS_IMAGE_URL = "/qris-wedding.jpg";
 
 export default function JakartaContent() {
-  const [isOpen, setIsOpen] = useState(false)
-  const [guestName, setGuestName] = useState<string>("You're Invited!")
-  const searchParams = useSearchParams()
-  const { scrollYProgress } = useScroll()
-  const y = useTransform(scrollYProgress, [0, 1], [0, -100])
+  const [isOpen, setIsOpen] = useState(false);
+  const [guestName, setGuestName] = useState<string>("You're Invited!");
+  const searchParams = useSearchParams();
+  const { scrollYProgress } = useScroll();
+  const y = useTransform(scrollYProgress, [0, 1], [0, -100]);
 
   useEffect(() => {
-    const guestSlug = searchParams.get("to")
+    const guestSlug = searchParams.get("to");
     if (guestSlug) {
       fetch(`/api/guest?slug=${encodeURIComponent(guestSlug)}`)
         .then((res) => res.json())
         .then((data) => {
           if (data.name) {
-            setGuestName(data.name)
+            setGuestName(data.name);
           }
         })
         .catch(() => {
-          setGuestName(guestSlug.replace(/-/g, " ").replace(/\b\w/g, (l) => l.toUpperCase()))
-        })
+          setGuestName(
+            guestSlug
+              .replace(/-/g, " ")
+              .replace(/\b\w/g, (l) => l.toUpperCase()),
+          );
+        });
     }
-  }, [searchParams])
+  }, [searchParams]);
 
-  const receptionDate = new Date(WEDDING_DATA.events.jakarta.reception.dateTime)
+  const receptionDate = new Date(
+    WEDDING_DATA.events.jakarta.reception.dateTime,
+  );
 
   const bankAccounts = [
     {
@@ -54,12 +72,17 @@ export default function JakartaContent() {
       account_number: " 1270014558603",
       account_holder: "Balqis Shafira Aini",
     },
-  ]
+  ];
 
-  const [showQris, setShowQris] = useState(false)
+  const [showQris, setShowQris] = useState(false);
 
   if (!isOpen) {
-    return <InvitationEnvelope guestName={guestName} onOpen={() => setIsOpen(true)} />
+    return (
+      <InvitationEnvelope
+        guestName={guestName}
+        onOpen={() => setIsOpen(true)}
+      />
+    );
   }
 
   return (
@@ -72,7 +95,8 @@ export default function JakartaContent() {
         <motion.div
           className="absolute inset-0"
           style={{
-            background: "linear-gradient(135deg, var(--background) 0%, var(--muted) 50%, var(--card) 100%)",
+            background:
+              "linear-gradient(135deg, var(--background) 0%, var(--muted) 50%, var(--card) 100%)",
           }}
         />
 
@@ -169,7 +193,10 @@ export default function JakartaContent() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 1.4 }}
           >
-            <CountdownTimer targetDate={receptionDate} label="Counting down to the celebration" />
+            <CountdownTimer
+              targetDate={receptionDate}
+              label="Counting down to the celebration"
+            />
           </motion.div>
         </div>
 
@@ -179,8 +206,7 @@ export default function JakartaContent() {
           animate={{ opacity: 1 }}
           transition={{ duration: 0.8, delay: 1.8 }}
           className="absolute bottom-8 left-1/2 -translate-x-1/2"
-        >
-        </motion.div>
+        ></motion.div>
       </section>
 
       {/* About Section - Bento Grid Style */}
@@ -188,8 +214,12 @@ export default function JakartaContent() {
         <div className="max-w-6xl mx-auto">
           <ScrollReveal>
             <div className="text-center mb-16">
-              <h2 className="font-serif text-4xl md:text-5xl text-foreground mb-4">Meet the Couple</h2>
-              <p className="text-muted-foreground text-lg">Two hearts, one beautiful journey</p>
+              <h2 className="font-serif text-4xl md:text-5xl text-foreground mb-4">
+                Meet the Couple
+              </h2>
+              <p className="text-muted-foreground text-lg">
+                Two hearts, one beautiful journey
+              </p>
             </div>
           </ScrollReveal>
 
@@ -208,9 +238,15 @@ export default function JakartaContent() {
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent" />
                     <div className="absolute bottom-0 left-0 right-0 p-6">
-                      <p className="text-primary text-sm font-medium mb-1">{WEDDING_DATA.bride.name}</p>
-                      <h3 className="font-serif text-2xl text-foreground">{WEDDING_DATA.bride.fullName}</h3>
-                      <p className="text-muted-foreground text-sm mt-1">{WEDDING_DATA.bride.parents}</p>
+                      <p className="text-primary text-sm font-medium mb-1">
+                        {WEDDING_DATA.bride.name}
+                      </p>
+                      <h3 className="font-serif text-2xl text-foreground">
+                        {WEDDING_DATA.bride.fullName}
+                      </h3>
+                      <p className="text-muted-foreground text-sm mt-1">
+                        {WEDDING_DATA.bride.parents}
+                      </p>
                     </div>
                   </div>
                 </CardContent>
@@ -224,8 +260,10 @@ export default function JakartaContent() {
                   <Heart className="w-10 h-10 mb-4 opacity-80" />
                   <h3 className="font-serif text-2xl mb-4">Our Story</h3>
                   <p className="text-primary-foreground/80 leading-relaxed">
-                    From strangers to soulmates, our journey has been nothing short of magical. Every moment together
-                    has been a blessing, and we can&apos;t wait to start this new chapter with all of you by our side.
+                    From strangers to soulmates, our journey has been nothing
+                    short of magical. Every moment together has been a blessing,
+                    and we can&apos;t wait to start this new chapter with all of
+                    you by our side.
                   </p>
                 </CardContent>
               </Card>
@@ -244,10 +282,15 @@ export default function JakartaContent() {
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent" />
                     <div className="absolute bottom-0 left-0 right-0 p-6">
-                      <p className="text-primary text-sm font-medium mb-1">{WEDDING_DATA.groom.name}</p>
-                      <h3 className="font-serif text-2xl text-foreground">{WEDDING_DATA.groom.fullName}</h3>
-                      <p className="text-muted-foreground text-sm mt-1">{WEDDING_DATA.groom.parents}</p>
-
+                      <p className="text-primary text-sm font-medium mb-1">
+                        {WEDDING_DATA.groom.name}
+                      </p>
+                      <h3 className="font-serif text-2xl text-foreground">
+                        {WEDDING_DATA.groom.fullName}
+                      </h3>
+                      <p className="text-muted-foreground text-sm mt-1">
+                        {WEDDING_DATA.groom.parents}
+                      </p>
                     </div>
                   </div>
                 </CardContent>
@@ -263,8 +306,12 @@ export default function JakartaContent() {
           <ScrollReveal>
             <div className="text-center mb-16">
               <PartyPopper className="w-10 h-10 text-primary mx-auto mb-4" />
-              <h2 className="font-serif text-4xl md:text-5xl text-foreground mb-4">The Celebration</h2>
-              <p className="text-muted-foreground text-lg">Join us for an unforgettable evening</p>
+              <h2 className="font-serif text-4xl md:text-5xl text-foreground mb-4">
+                The Celebration
+              </h2>
+              <p className="text-muted-foreground text-lg">
+                Join us for an unforgettable evening
+              </p>
             </div>
           </ScrollReveal>
 
@@ -284,7 +331,9 @@ export default function JakartaContent() {
 
                   {/* Details Side */}
                   <div className="p-8 md:p-12 flex flex-col justify-center">
-                    <h3 className="font-serif text-3xl text-foreground mb-6">Wedding Reception</h3>
+                    <h3 className="font-serif text-3xl text-foreground mb-6">
+                      Wedding Reception
+                    </h3>
 
                     <div className="space-y-6">
                       <div className="flex items-start gap-4">
@@ -292,7 +341,9 @@ export default function JakartaContent() {
                           <Calendar className="w-5 h-5 text-primary" />
                         </div>
                         <div>
-                          <p className="font-medium text-foreground">Monday, 1 June 2026</p>
+                          <p className="font-medium text-foreground">
+                            Monday, 1 June 2026
+                          </p>
                         </div>
                       </div>
 
@@ -301,7 +352,9 @@ export default function JakartaContent() {
                           <Clock className="w-5 h-5 text-primary" />
                         </div>
                         <div>
-                          <p className="font-medium text-foreground">16.00 - 19.30 WIB</p>
+                          <p className="font-medium text-foreground">
+                            16.00 - 19.30 WIB
+                          </p>
                         </div>
                       </div>
 
@@ -310,7 +363,9 @@ export default function JakartaContent() {
                           <MapPin className="w-5 h-5 text-primary" />
                         </div>
                         <div>
-                          <p className="font-medium text-foreground">{WEDDING_DATA.events.jakarta.reception.venue}</p>
+                          <p className="font-medium text-foreground">
+                            {WEDDING_DATA.events.jakarta.reception.venue}
+                          </p>
                           <p className="text-muted-foreground text-sm mt-1">
                             {WEDDING_DATA.events.jakarta.reception.address}
                           </p>
@@ -329,17 +384,20 @@ export default function JakartaContent() {
                           Get Directions
                         </a>
                       </Button>
-                      <a 
-                      href="https://calendar.google.com/calendar/render?action=TEMPLATE&text=Wedding+of+Balqis+%26+Erlan&dates=20260601T093000Z/20260601T123000Z&details=Wedding+Celebration&location=Villa+Srimanganti+Jl.+Raya+Pkp+No.34+2,+RT.2/RW.8,+Klp.+Dua+Wetan,+Kec.+Ciracas,+Kota+Jakarta+Timur,+DKI+Jakarta"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex-1" // Ensures the anchor takes up the same space as the button
+                      <a
+                        href="https://calendar.google.com/calendar/render?action=TEMPLATE&text=Wedding+of+Balqis+%26+Erlan&dates=20260601T093000Z/20260601T123000Z&details=Wedding+Celebration&location=Villa+Srimanganti+Jl.+Raya+Pkp+No.34+2,+RT.2/RW.8,+Klp.+Dua+Wetan,+Kec.+Ciracas,+Kota+Jakarta+Timur,+DKI+Jakarta"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex-1" // Ensures the anchor takes up the same space as the button
                       >
-                        <Button variant="outline" className="w-full bg-transparent">
+                        <Button
+                          variant="outline"
+                          className="w-full bg-transparent"
+                        >
                           <Calendar className="w-4 h-4 mr-2" />
                           Add to Calendar
-                          </Button>
-                          </a>
+                        </Button>
+                      </a>
                     </div>
                   </div>
                 </div>
@@ -352,10 +410,13 @@ export default function JakartaContent() {
             <Card className="bg-muted/50 border-border mt-6">
               <CardContent className="p-6 text-center">
                 <p className="text-muted-foreground mb-2">Dress Code</p>
-                <p className="font-serif text-xl text-foreground">Formal / Cocktail Attire</p>
-                <p className="text-sm text-muted-foreground mt-2">
-                  Suggested colors: Sage Green, Dusty Rose, Champagne
+                <p className="font-serif text-xl text-foreground">
+                  Formal / Cocktail Attire
                 </p>
+                <div className="text-sm text-muted-foreground mt-2 space-y-1">
+                  <p>Suggested: Earth Tone Colors.</p>
+                  <p>NO WHITE. Outshine the bride are strictly prohibited.</p>
+                </div>
               </CardContent>
             </Card>
           </ScrollReveal>
@@ -368,16 +429,20 @@ export default function JakartaContent() {
           <ScrollReveal>
             <div className="text-center mb-16">
               <Film className="w-10 h-10 text-primary mx-auto mb-4" />
-              <h2 className="font-serif text-4xl md:text-5xl text-foreground mb-4">Our Moments</h2>
-              <p className="text-muted-foreground text-lg">The beginning of our forever</p>
+              <h2 className="font-serif text-4xl md:text-5xl text-foreground mb-4">
+                Our Moments
+              </h2>
+              <p className="text-muted-foreground text-lg">
+                The beginning of our forever
+              </p>
             </div>
           </ScrollReveal>
 
           <ScrollReveal delay={100}>
             <div className="rounded-xl overflow-hidden shadow-2xl bg-black border border-border">
-              <video 
-                controls 
-                className="w-full h-auto aspect-video" 
+              <video
+                controls
+                className="w-full h-auto aspect-video"
                 src="/proposal.mp4"
                 poster="/thumbnail.jpg"
               >
@@ -394,13 +459,16 @@ export default function JakartaContent() {
           <ScrollReveal>
             <div className="text-center mb-16">
               <Camera className="w-10 h-10 text-primary mx-auto mb-4" />
-              <h2 className="font-serif text-4xl md:text-5xl text-foreground mb-4">Gallery</h2>
-              <p className="text-muted-foreground text-lg">Snapshots of our journey together</p>
+              <h2 className="font-serif text-4xl md:text-5xl text-foreground mb-4">
+                Gallery
+              </h2>
+              <p className="text-muted-foreground text-lg">
+                Snapshots of our journey together
+              </p>
             </div>
           </ScrollReveal>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-
             {/* Photo 1 - Portrait */}
             <ScrollReveal delay={200}>
               <div className="md:col-span-1 aspect-[3/4] relative rounded-xl overflow-hidden group">
@@ -447,7 +515,9 @@ export default function JakartaContent() {
         <div className="max-w-4xl mx-auto">
           <ScrollReveal>
             <div className="text-center mb-12">
-              <h2 className="font-serif text-4xl md:text-5xl text-foreground mb-4">RSVP</h2>
+              <h2 className="font-serif text-4xl md:text-5xl text-foreground mb-4">
+                RSVP
+              </h2>
               <p className="text-muted-foreground text-lg max-w-lg mx-auto">
                 Please let us know if you&apos;ll be joining our celebration
               </p>
@@ -467,9 +537,12 @@ export default function JakartaContent() {
           <ScrollReveal>
             <div className="text-center mb-12">
               <Gift className="w-10 h-10 text-primary mx-auto mb-4" />
-              <h2 className="font-serif text-4xl md:text-5xl text-foreground mb-4">Wedding Gift</h2>
+              <h2 className="font-serif text-4xl md:text-5xl text-foreground mb-4">
+                Wedding Gift
+              </h2>
               <p className="text-muted-foreground text-lg max-w-lg mx-auto">
-                Your presence is the greatest gift, but if you wish to bless us further:
+                Your presence is the greatest gift, but if you wish to bless us
+                further:
               </p>
             </div>
           </ScrollReveal>
@@ -494,7 +567,9 @@ export default function JakartaContent() {
                     className="object-contain rounded-lg"
                   />
                 </div>
-                <p className="text-sm text-muted-foreground mt-3">Tap to enlarge</p>
+                <p className="text-sm text-muted-foreground mt-3">
+                  Tap to enlarge
+                </p>
               </CardContent>
             </Card>
           </ScrollReveal>
@@ -514,10 +589,10 @@ export default function JakartaContent() {
                 But if you&apos;d like to add a little magic to our new home,
                 <br />
                 we&apos;ve created a wishlist of things we&apos;d truly cherish.
-                </p>
+              </p>
 
-              <Button 
-                asChild 
+              <Button
+                asChild
                 className="h-auto py-6 px-12 text-xl font-medium rounded-full shadow-[0_0_20px_rgba(var(--primary),0.3)] hover:shadow-[0_0_30px_rgba(var(--primary),0.5)] hover:scale-105 transition-all duration-300 bg-gradient-to-r from-primary to-primary/80 border-2 border-primary/20"
               >
                 <Link href="/wishlist">View Gift Wishlist</Link>
@@ -540,7 +615,10 @@ export default function JakartaContent() {
               className="object-contain"
             />
           </div>
-          <button className="absolute top-4 right-4 text-white text-xl" onClick={() => setShowQris(false)}>
+          <button
+            className="absolute top-4 right-4 text-white text-xl"
+            onClick={() => setShowQris(false)}
+          >
             ✕
           </button>
         </div>
@@ -556,48 +634,63 @@ export default function JakartaContent() {
           className="max-w-4xl mx-auto"
         >
           <p className="font-serif text-3xl md:text-4xl text-foreground mb-4">
-            {WEDDING_DATA.bride.name} <span className="text-primary">&</span> {WEDDING_DATA.groom.name}
+            {WEDDING_DATA.bride.name} <span className="text-primary">&</span>{" "}
+            {WEDDING_DATA.groom.name}
           </p>
           <p className="text-muted-foreground mb-6">
-            Thank you for being part of our love story. We can&apos;t wait to celebrate with you!
+            Thank you for being part of our love story. We can&apos;t wait to
+            celebrate with you!
           </p>
           <div className="flex items-center justify-center gap-2 text-muted-foreground text-sm">
             <span>Made with</span>
             <Heart className="w-4 h-4 text-accent fill-current" />
             <span>for our special day</span>
           </div>
-          <p className="text-xs text-muted-foreground mt-4">© 2026 #BalqisErlanForever</p>
+          <p className="text-xs text-muted-foreground mt-4">
+            © 2026 #LANdingtoQIS
+          </p>
         </motion.div>
       </footer>
     </main>
-  )
+  );
 }
 
 // Bank Card Component
 function BankCard({
   account,
   index,
-}: { account: { bank_name: string; account_number: string; account_holder: string }; index: number }) {
-  const [copied, setCopied] = useState(false)
+}: {
+  account: {
+    bank_name: string;
+    account_number: string;
+    account_holder: string;
+  };
+  index: number;
+}) {
+  const [copied, setCopied] = useState(false);
 
   const copyToClipboard = () => {
-    navigator.clipboard.writeText(account.account_number)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
-  }
+    navigator.clipboard.writeText(account.account_number);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   return (
     <Card className="bg-background border-border">
       <CardContent className="p-6">
         <p className="text-primary font-medium mb-3">{account.bank_name}</p>
         <div className="flex items-center justify-between gap-4 mb-3">
-          <p className="font-mono text-2xl text-foreground">{account.account_number}</p>
+          <p className="font-mono text-2xl text-foreground">
+            {account.account_number}
+          </p>
           <Button variant="ghost" size="sm" onClick={copyToClipboard}>
             {copied ? "Copied!" : "Copy"}
           </Button>
         </div>
-        <p className="text-muted-foreground text-sm">a.n. {account.account_holder}</p>
+        <p className="text-muted-foreground text-sm">
+          a.n. {account.account_holder}
+        </p>
       </CardContent>
     </Card>
-  )
+  );
 }
